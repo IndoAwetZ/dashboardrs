@@ -1,279 +1,149 @@
 <!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard Antrian Poli Spesialis</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Antrian Poli</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Lato', sans-serif;
+      background: linear-gradient(135deg, #f0f6ff, #dbeafe);
+      margin: 0;
+      overflow: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body class="flex flex-col h-screen w-screen text-gray-900">
 
-    <!-- Font Lato -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+  <!-- Header -->
+  <header class="glass fixed top-0 left-0 w-full flex justify-between items-center px-10 py-3 text-blue-900 shadow-md">
+    <div class="text-2xl font-bold">Dashboard Antrian Poli Spesialis</div>
+    <div class="text-center flex-1">
+      <div id="clock" class="text-4xl font-bold tracking-wider"></div>
+    </div>
+    <div id="date" class="text-lg font-medium"></div>
+  </header>
 
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              sans: ['Lato', 'sans-serif'],
-            },
-          },
-        },
-      };
-    </script>
+  <!-- Konten utama -->
+  <main id="content" class="flex-grow mt-20 mb-16 overflow-hidden p-6">
+    <div id="pages" class="h-full w-full flex items-center justify-center text-center">
+      <div class="text-gray-700 text-xl">Memuat data antrian...</div>
+    </div>
+  </main>
 
-    <style>
-      html,
-      body {
-        font-family: 'Lato', sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f8fafc;
-      }
-    </style>
-  </head>
+  <!-- Footer -->
+  <footer class="glass fixed bottom-0 left-0 w-full flex justify-between items-center px-8 py-2 text-blue-900 text-lg">
+    <div>RS Aisyiyah Siti Fatimah – Sistem Antrian</div>
+    <div id="lastUpdate">Terakhir diperbarui: --:--:--</div>
+  </footer>
 
-  <body>
-    <div id="root"></div>
+  <script>
+    const clock = document.getElementById('clock');
+    const dateEl = document.getElementById('date');
+    const lastUpdate = document.getElementById('lastUpdate');
+    const pages = document.getElementById('pages');
 
-    <!-- React & Babel CDN -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    function updateClock() {
+      const now = new Date();
+      const jam = now.toLocaleTimeString('id-ID', { hour12: false });
+      clock.textContent = jam;
 
-    <!-- Dashboard Script -->
-    <script type="text/babel">
-      const { useState, useEffect, useRef } = React;
+      const hari = now.toLocaleDateString('id-ID', { weekday: 'long' });
+      const tanggal = now.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+      dateEl.textContent = `${hari}, ${tanggal}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
 
-      function DashboardAntrianPoli() {
-        const [data, setData] = useState([]);
-        const [loading, setLoading] = useState(false);
-        const [lastUpdate, setLastUpdate] = useState(null);
-        const [currentTime, setCurrentTime] = useState(new Date());
-        const [pageIndex, setPageIndex] = useState(0);
+    async function fetchData() {
+      try {
+        const res = await fetch('https://project.rsaisyiyahsitifatimah.com/api/reg-periksa');
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const filtered = json.data.filter(
+            (item) =>
+              item.nm_dokter.toLowerCase() !== 'admin' &&
+              item.nm_poli.toLowerCase() !== 'igd'
+          );
 
-        const PAGE_INTERVAL_MS = 8000;
-        const REFRESH_MS = 10000;
-        const mounted = useRef(true);
+          const grouped = filtered.reduce((acc, item) => {
+            if (!acc[item.nm_poli]) acc[item.nm_poli] = {};
+            if (!acc[item.nm_poli][item.nm_dokter]) acc[item.nm_poli][item.nm_dokter] = [];
+            acc[item.nm_poli][item.nm_dokter].push(item);
+            return acc;
+          }, {});
 
-        useEffect(() => {
-          mounted.current = true;
-          return () => {
-            mounted.current = false;
-          };
-        }, []);
-
-        const fetchData = async () => {
-          try {
-            setLoading(true);
-            const res = await fetch(
-              "https://project.rsaisyiyahsitifatimah.com/api/reg-periksa"
-            );
-            const json = await res.json();
-            if (json.success && Array.isArray(json.data)) {
-              const filtered = json.data.filter(
-                (item) =>
-                  item.nm_dokter.toLowerCase() !== "admin" &&
-                  item.nm_poli.toLowerCase() !== "igd"
-              );
-              const sorted = [...filtered].sort((a, b) =>
-                a.no_reg.localeCompare(b.no_reg)
-              );
-              if (!mounted.current) return;
-              setData(sorted);
-              setLastUpdate(new Date());
-            }
-          } catch (err) {
-            console.error("Error fetching data:", err);
-          } finally {
-            if (mounted.current) setLoading(false);
+          const poliNames = Object.keys(grouped);
+          const pagesData = [];
+          for (let i = 0; i < poliNames.length; i += 2) {
+            pagesData.push(poliNames.slice(i, i + 2));
           }
-        };
 
-        useEffect(() => {
-          fetchData();
-          const refresh = setInterval(fetchData, REFRESH_MS);
-          return () => clearInterval(refresh);
-        }, []);
+          let pageIndex = 0;
+          function renderPage() {
+            const pagePoli = pagesData[pageIndex];
+            const pageHTML = `
+              <div class="grid grid-cols-2 gap-8 w-full h-full overflow-auto px-10 py-6">
+                ${pagePoli
+                  .map(
+                    (poli) => `
+                  <div class="bg-white bg-opacity-90 rounded-xl shadow-md p-4 border border-blue-200">
+                    <h2 class="text-2xl font-bold text-blue-700 border-b pb-2 mb-4">${poli}</h2>
+                    ${Object.keys(grouped[poli])
+                      .map(
+                        (dokter) => `
+                      <div class="mb-3">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">${dokter}</h3>
+                        <ul class="space-y-1">
+                          ${grouped[poli][dokter]
+                            .map(
+                              (pasien) => `
+                              <li class="flex justify-between bg-blue-50 rounded-md px-3 py-1">
+                                <span>${sensorNama(pasien.nm_pasien)}</span>
+                              </li>`
+                            )
+                            .join('')}
+                        </ul>
+                      </div>`
+                      )
+                      .join('')}
+                  </div>`
+                  )
+                  .join('')}
+              </div>
+            `;
+            pages.innerHTML = pageHTML;
+            pageIndex = (pageIndex + 1) % pagesData.length;
+          }
 
-        useEffect(() => {
-          const clock = setInterval(() => setCurrentTime(new Date()), 1000);
-          return () => clearInterval(clock);
-        }, []);
-
-        const grouped = data.reduce((acc, item) => {
-          if (!acc[item.nm_poli]) acc[item.nm_poli] = {};
-          if (!acc[item.nm_poli][item.nm_dokter])
-            acc[item.nm_poli][item.nm_dokter] = [];
-          acc[item.nm_poli][item.nm_dokter].push(item);
-          return acc;
-        }, {});
-
-        const poliList = Object.keys(grouped).map((poli) => ({
-          name: poli,
-          doctors: grouped[poli],
-        }));
-
-        const pages = [];
-        for (let i = 0; i < poliList.length; i += 2) {
-          pages.push(poliList.slice(i, i + 2));
+          renderPage();
+          setInterval(renderPage, 8000);
+          lastUpdate.textContent = `Terakhir diperbarui: ${new Date().toLocaleTimeString('id-ID', { hour12: false })}`;
         }
-
-        useEffect(() => {
-          if (pages.length <= 1) return;
-          const t = setInterval(() => {
-            setPageIndex((prev) => (prev + 1) % pages.length);
-          }, PAGE_INTERVAL_MS);
-          return () => clearInterval(t);
-        }, [pages.length]);
-
-        const sensorNama = (nama) => {
-          if (!nama) return "";
-          const parts = nama.split(" ");
-          return parts
-            .map((part) =>
-              part.length > 2
-                ? part[0] + "*".repeat(part.length - 2) + part.slice(-1)
-                : part
-            )
-            .join(" ");
-        };
-
-        const formatTanggal = (date) => {
-          const hari = [
-            "Minggu",
-            "Senin",
-            "Selasa",
-            "Rabu",
-            "Kamis",
-            "Jumat",
-            "Sabtu",
-          ];
-          const bulan = [
-            "Januari",
-            "Februari",
-            "Maret",
-            "April",
-            "Mei",
-            "Juni",
-            "Juli",
-            "Agustus",
-            "September",
-            "Oktober",
-            "November",
-            "Desember",
-          ];
-          return `${hari[date.getDay()]}, ${date.getDate()} ${
-            bulan[date.getMonth()]
-          } ${date.getFullYear()}`;
-        };
-
-        return (
-          <div className="w-screen h-screen bg-gray-50 font-[Lato] overflow-hidden">
-            <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[1600px] bg-blue-700/80 backdrop-blur-md rounded-2xl shadow-lg text-white px-8 py-4 z-30 flex items-center justify-between">
-              <div className="text-3xl font-bold">Dashboard Antrian Poli Spesialis</div>
-              <div className="text-center">
-                <div className="text-xl font-semibold">
-                  {currentTime.toLocaleTimeString("id-ID")}
-                </div>
-                <div className="text-lg mt-1">{formatTanggal(currentTime)}</div>
-              </div>
-              <div className="w-44 text-right text-sm opacity-90"></div>
-            </header>
-
-            <main className="absolute inset-0 top-28 bottom-28 flex items-center justify-center pointer-events-none">
-              <div className="w-[95%] max-w-[1600px] h-full flex items-center justify-center">
-                <div className="w-full h-full relative">
-                  {pages.length === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-4xl text-gray-600">
-                        Tidak ada data antrian
-                      </div>
-                    </div>
-                  )}
-
-                  {pages.map((page, idx) => (
-                    <section
-                      key={idx}
-                      aria-hidden={idx !== pageIndex}
-                      className={`absolute inset-0 transition-opacity duration-800 ease-in-out flex gap-8 p-6 ${
-                        idx === pageIndex ? "opacity-100 z-10" : "opacity-0 z-0"
-                      }`}
-                      style={{
-                        pointerEvents: idx === pageIndex ? "auto" : "none",
-                      }}
-                    >
-                      {page.map((poliEntry) => (
-                        <div
-                          key={poliEntry.name}
-                          className="flex-1 bg-white rounded-2xl shadow-lg p-6 flex flex-col pointer-events-auto"
-                          style={{ minHeight: "60vh" }}
-                        >
-                          <h2 className="text-4xl font-bold text-blue-700 mb-4 border-b pb-3">
-                            {poliEntry.name}
-                          </h2>
-                          <div className="flex-1 overflow-hidden">
-                            {Object.keys(poliEntry.doctors).map((dokter) => (
-                              <div key={dokter} className="mb-6">
-                                <div className="text-2xl font-semibold text-gray-800 mb-2">
-                                  {dokter}
-                                </div>
-                                <ul className="space-y-2">
-                                  {poliEntry.doctors[dokter].map((pas, i) => (
-                                    <li
-                                      key={i}
-                                      className="text-xl bg-gray-100 rounded-md px-4 py-2"
-                                    >
-                                      {sensorNama(pas.nm_pasien)}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                      {page.length === 1 && <div className="flex-1" />}
-                    </section>
-                  ))}
-                </div>
-              </div>
-            </main>
-
-            <footer className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-[1600px] bg-blue-700/80 backdrop-blur-md rounded-2xl shadow-lg text-white px-6 py-3 z-30 flex items-center justify-between">
-              <div className="text-lg font-medium">
-                RS Aisyiyah Siti Fatimah – Sistem Antrian
-              </div>
-              <div className="text-right text-sm">
-                {lastUpdate ? (
-                  <>
-                    Terakhir diperbarui:{" "}
-                    <span className="font-semibold">
-                      {lastUpdate.toLocaleTimeString("id-ID")}
-                    </span>
-                  </>
-                ) : (
-                  "Belum ada pembaruan"
-                )}
-              </div>
-            </footer>
-
-            <style>
-              {`
-                .duration-800 {
-                  transition-duration: 800ms;
-                }
-              `}
-            </style>
-          </div>
-        );
+      } catch (err) {
+        console.error(err);
       }
+    }
 
-      const root = ReactDOM.createRoot(document.getElementById("root"));
-      root.render(<DashboardAntrianPoli />);
-    </script>
-  </body>
+    function sensorNama(nama) {
+      const parts = nama.split(' ');
+      return parts.map((p) =>
+        p.length > 2 ? p[0] + '*'.repeat(p.length - 2) + p.slice(-1) : p
+      ).join(' ');
+    }
+
+    fetchData();
+    setInterval(fetchData, 10000);
+  </script>
+</body>
 </html>
