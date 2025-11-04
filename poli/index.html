@@ -1,191 +1,808 @@
+
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard Antrian Poli Spesialis</title>
-
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap" rel="stylesheet" />
-
-  <style>
-    body {
-      font-family: 'Lato', sans-serif;
-      background: rgba(240, 248, 255, 0.8);
-      backdrop-filter: blur(10px);
-      transition: background 1s, color 1s;
-      overflow: hidden;
-    }
-    .glass {
-      background: rgba(59, 130, 246, 0.85);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-    }
-    .dark .glass {
-      background: rgba(30, 58, 138, 0.8);
-    }
-    .page {
-      opacity: 0;
-      transition: opacity 1s;
-      position: absolute;
-      width: 100%;
-    }
-    .page.active {
-      opacity: 1;
-      position: relative;
-    }
-  </style>
-</head>
-<body class="text-gray-900">
-
-  <!-- HEADER -->
-  <header class="glass fixed top-0 w-full flex justify-between items-center px-8 py-3 shadow-md z-10">
-    <div class="text-2xl font-bold">Dashboard Antrian Poli</div>
-    <div id="jam" class="text-4xl font-bold tracking-widest text-center flex-1"></div>
-    <div id="tanggal" class="text-lg font-semibold text-right w-64"></div>
-  </header>
-
-  <!-- MAIN -->
-  <main id="main" class="pt-24 pb-20 px-8 max-w-screen-xl mx-auto relative overflow-hidden h-screen"></main>
-
-  <!-- FOOTER -->
-  <footer class="glass fixed bottom-0 w-full py-2 px-8 flex justify-between items-center text-white z-10">
-    <div class="flex items-center gap-2 text-sm">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <span id="last-update">Terakhir diperbarui: --:--:--</span>
-    </div>
-    <marquee behavior="scroll" direction="left" scrollamount="5" class="text-sm">
-      Selamat datang di RS Aisyiyah Siti Fatimah Tulungagung — Layanan Antrian Poli Spesialis Hari Ini (Auto Refresh setiap 10 detik)
-    </marquee>
-  </footer>
-
-  <script>
-    const API_URL = 'https://project.rsaisyiyahsitifatimah.com/api/reg-periksa';
-    const main = document.getElementById('main');
-    const lastUpdate = document.getElementById('last-update');
-
-    let currentPage = 0;
-    let totalPages = 0;
-
-    function sensorNama(nama) {
-      return nama.split(' ')
-        .map(p => p.length > 2 ? p[0] + '*'.repeat(p.length - 2) + p.slice(-1) : p)
-        .join(' ');
-    }
-
-    async function fetchData() {
-      try {
-        const res = await fetch(API_URL);
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          const filtered = json.data.filter(item =>
-            item.nm_dokter.toLowerCase() !== 'admin' &&
-            item.nm_poli.toLowerCase() !== 'igd'
-          );
-          renderData(filtered);
-          updateLastUpdate();
-        } else {
-          main.innerHTML = '<p class="text-center text-red-600">❌ Gagal memuat data</p>';
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Poli Spesialis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Lato', sans-serif;
         }
-      } catch (e) {
-        main.innerHTML = '<p class="text-center text-red-600">⚠️ Error koneksi API</p>';
-      }
-    }
-
-    function renderData(data) {
-      const grouped = {};
-      data.forEach(item => {
-        if (!grouped[item.nm_poli]) grouped[item.nm_poli] = {};
-        if (!grouped[item.nm_poli][item.nm_dokter]) grouped[item.nm_poli][item.nm_dokter] = [];
-        grouped[item.nm_poli][item.nm_dokter].push(item);
-      });
-
-      const pages = [];
-      const perPage = 4; // tampilkan 4 poli per halaman
-      const allPoli = Object.keys(grouped);
-
-      for (let i = 0; i < allPoli.length; i += perPage) {
-        const poliChunk = allPoli.slice(i, i + perPage);
-        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
-        poliChunk.forEach(poli => {
-          html += `
-            <div class="glass p-4 rounded-xl shadow text-gray-100">
-              <h2 class="text-xl font-semibold border-b pb-2 mb-3">${poli}</h2>
-              ${Object.keys(grouped[poli]).map(dokter => `
-                <div class="mb-3">
-                  <h3 class="text-lg font-medium mb-2">${dokter}</h3>
-                  <ul class="space-y-1 pl-4">
-                    ${grouped[poli][dokter].map(p => `
-                      <li class="flex justify-between bg-white/20 rounded-md px-3 py-1">
-                        <span>${sensorNama(p.nm_pasien)}</span>
-                      </li>
-                    `).join('')}
-                  </ul>
-                </div>
-              `).join('')}
+        
+        body {
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .container-header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 100;
+            border-bottom: 3px solid #ffc107;
+        }
+        
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            font-size: 1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+        
+        .header-date-time {
+            text-align: right;
+            line-height: 1.5;
+        }
+        
+        .header-date {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .header-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .update-info {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        
+        .update-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #4ade80;
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+        
+        .container-main {
+            position: relative;
+            margin-top: 180px;
+            padding: 0 20px;
+            margin-bottom: 100px; /* Increased space for footer */
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .sec-poli {
+            height: calc(100vh - 280px);
+            overflow: hidden;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: relative;
+            width: 100%;
+        }
+        
+        .scroll-wrapper {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .scroll-container {
+            position: absolute;
+            width: 100%;
+            will-change: transform; /* Optimize for animation performance */
+        }
+        
+        .doctor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        @media (min-width: 768px) {
+            .doctor-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .doctor-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .doctor-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            padding: 1.25rem;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden; /* Prevent content from overflowing */
+        }
+        
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-box {
+            border-radius: 6px;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .status-belum {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #F59E0B;
+        }
+        
+        .patient-list {
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+        
+        .patient-item {
+            padding: 0.25rem 0;
+            font-size: 1.5rem; /* Increased font size as requested */
+            line-height: 1.3;
+            font-weight: 500;
+            word-break: break-word; /* Allow long words to break */
+            white-space: normal; /* Allow text to wrap */
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .more-patients {
+            font-size: 1.2rem;
+            color: #4b5563;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            margin-top: 2rem;
+        }
+        
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .container-footer {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 0.75rem;
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 100;
+            border-top: 3px solid #ffc107;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            border-radius: 12px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer-marquee {
+            display: inline-block;
+            animation: marquee-horizontal 20s linear infinite;
+            padding-left: 100%;
+        }
+        
+        @keyframes marquee-horizontal {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* Improved infinite scroll animation with smooth transitions */
+        @keyframes scrollUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(calc(-100% + 100vh)); }
+        }
+        
+        /* Add a spacer at the bottom to ensure content doesn't get cut off */
+        .scroll-spacer {
+            height: 40px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-header">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="header-title">Dashboard Poli Spesialis</h1>
+                <h2 class="header-subtitle">RSU 'Aisyiyah Siti Fatimah Tulangan</h2>
             </div>
-          `;
+            <div class="header-date-time">
+                <div id="current-date" class="header-date"></div>
+                <div id="current-time" class="header-time"></div>
+                <div class="update-info">
+                    <span class="update-dot"></span>
+                    <span id="refresh-status">Pembaruan terakhir:</span>
+                    <span id="last-update-time" class="ml-1"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container-main">
+        <!-- Doctor List Section (Full Width) -->
+        <div class="sec-poli">
+            <div id="loading" class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+            <div id="scroll-wrapper" class="scroll-wrapper hidden">
+                <div id="scroll-container" class="scroll-container">
+                    <div id="doctor-grid" class="doctor-grid">
+                        <!-- Doctor cards will be inserted here -->
+                    </div>
+                    <div class="scroll-spacer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer with Marquee -->
+    <div class="container-footer">
+        <div class="footer-marquee">
+            RSU 'Aisyiyah Siti Fatimah Tulangan - Melayani dengan Sepenuh Hati - Jl. Raya Kenongo No. 14 Tulangan, Sidoarjo - Telp: (031) 885 1840
+        </div>
+    </div>
+
+    <script>
+        // Maximum number of characters to display in patient name
+        const MAX_NAME_LENGTH = 20;
+        
+        // Maximum number of visible letters before censoring
+        const MAX_VISIBLE_LETTERS = 5;
+        
+        // Maximum number of patients to display per doctor
+        const MAX_PATIENTS_DISPLAY = 10;
+        
+        // Auto-refresh interval in milliseconds (60 seconds)
+        const REFRESH_INTERVAL = 60000;
+        
+        // Base scroll speed (lower = faster)
+        const BASE_SCROLL_SPEED = 15;
+        
+        // Track animation state
+        let scrollAnimationId = null;
+        let isRefreshScheduled = false;
+        let scrollPosition = 0;
+        let totalScrollHeight = 0;
+        let viewportHeight = 0;
+        
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            
+            // Format date: Senin, 25 Juli 2023
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', options);
+            
+            // Format time: 14:30:45 with colon separator
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+        
+        // Update time every second
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+        
+        // Fetch data from API
+        async function fetchData() {
+            try {
+                //const response = await fetch('http://192.168.10.32:5000/api/reg-periksa');
+                const response = await fetch('https://project.rsaisyiyahsitifatimah.com/api/reg-periksa');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                return data.data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return [];
+            }
+        }
+        
+        // Censor and truncate patient name
+        function formatPatientName(name) {
+            if (!name) return '';
+            
+            // Show first MAX_VISIBLE_LETTERS letters, then censor the rest
+            let visiblePart = name.substring(0, MAX_VISIBLE_LETTERS);
+            let censoredPart = '*'.repeat(Math.max(0, name.length - MAX_VISIBLE_LETTERS));
+            let censoredName = visiblePart + censoredPart;
+            
+            // Then truncate if it's too long
+            if (censoredName.length > MAX_NAME_LENGTH) {
+                censoredName = censoredName.substring(0, MAX_NAME_LENGTH) + '...';
+            }
+            
+            return censoredName;
+        }
+        
+        // Process data and group by doctor
+        function processData(data) {
+            const doctorMap = new Map();
+            
+            data.forEach(item => {
+                // Skip entries with "Admin" in the doctor name
+                if (item.nm_dokter && item.nm_dokter.includes("Admin")) {
+                    return;
+                }
+                
+                // Skip entries from IGD
+                if (item.nm_poli && item.nm_poli.includes("IGD")) {
+                    return;
+                }
+                
+                const doctor = {
+                    name: item.nm_dokter,
+                    poli: item.nm_poli,
+                    status: item.stts,
+                    patient: item.nm_pasien
+                };
+                
+                if (!doctorMap.has(doctor.name)) {
+                    doctorMap.set(doctor.name, {
+                        name: doctor.name,
+                        poli: doctor.poli,
+                        belum: 0,
+                        patients: []
+                    });
+                }
+                
+                const doctorData = doctorMap.get(doctor.name);
+                if (doctor.status === 'Belum') {
+                    doctorData.belum += 1;
+                    // Format the patient name (censor and truncate)
+                    doctorData.patients.push(formatPatientName(doctor.patient));
+                }
+            });
+            
+            return Array.from(doctorMap.values());
+        }
+        
+        // Create doctor cards in grid layout
+        function createDoctorCards(doctors) {
+            const doctorGrid = document.getElementById('doctor-grid');
+            doctorGrid.innerHTML = '';
+            
+            // Create doctor cards
+            doctors.forEach(doctor => {
+                const card = document.createElement('div');
+                card.className = 'doctor-card';
+                
+                let patientListHTML = '';
+                if (doctor.patients.length > 0) {
+                    // Limit the number of patients displayed
+                    const displayPatients = doctor.patients.slice(0, MAX_PATIENTS_DISPLAY);
+                    const remainingCount = doctor.patients.length - MAX_PATIENTS_DISPLAY;
+                    
+                    patientListHTML = `
+                        <div class="mt-3">
+                            <h4 class="font-medium text-gray-700 mb-1">Pasien Belum Periksa:</h4>
+                            <div class="patient-list">
+                                ${displayPatients.map(patient => `<div class="patient-item">• ${patient}</div>`).join('')}
+                                ${remainingCount > 0 ? `<div class="more-patients">+ ${remainingCount} pasien lainnya</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                card.innerHTML = `
+                    <h3 class="text-lg font-bold text-gray-800 mb-1">${doctor.name}</h3>
+                    <p class="text-sm text-gray-600 mb-3">${doctor.poli}</p>
+                    <div class="status-box status-belum">
+                        <div class="text-xs">Belum Periksa</div>
+                        <div class="text-xl font-bold">${doctor.belum}</div>
+                    </div>
+                    ${patientListHTML}
+                `;
+                
+                doctorGrid.appendChild(card);
+            });
+            
+            // If no doctors are found after filtering
+            if (doctors.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'col-span-full text-center p-8 bg-white rounded-lg';
+                emptyMessage.innerHTML = '<p class="text-gray-500">Tidak ada data dokter yang tersedia</p>';
+                doctorGrid.appendChild(emptyMessage);
+            }
+            
+            // Update last update time
+            updateLastUpdateTime();
+            
+            // Set up the custom scroll animation
+            setupCustomScroll();
+            
+            // Schedule next refresh
+            scheduleNextRefresh();
+        }
+        
+        // Custom scroll animation that ensures all content is shown
+        function setupCustomScroll() {
+            const scrollContainer = document.getElementById('scroll-container');
+            const doctorGrid = document.getElementById('doctor-grid');
+            const scrollWrapper = document.getElementById('scroll-wrapper');
+            
+            // Reset any existing animation
+            if (scrollAnimationId) {
+                cancelAnimationFrame(scrollAnimationId);
+                scrollAnimationId = null;
+            }
+            
+            // Reset scroll position
+            scrollContainer.style.transform = 'translateY(0)';
+            scrollPosition = 0;
+            
+            // Calculate heights
+            totalScrollHeight = doctorGrid.offsetHeight;
+            viewportHeight = scrollWrapper.offsetHeight;
+            
+            // Only apply animation if content is taller than container
+            if (totalScrollHeight > viewportHeight) {
+                // Start the custom scroll animation
+                startScrollAnimation();
+                
+                // Pause animation on hover
+                scrollContainer.addEventListener('mouseenter', () => {
+                    if (scrollAnimationId) {
+                        cancelAnimationFrame(scrollAnimationId);
+                        scrollAnimationId = null;
+                    }
+                });
+                
+                scrollContainer.addEventListener('mouseleave', () => {
+                    if (!scrollAnimationId) {
+                        startScrollAnimation();
+                    }
+                });
+            }
+        }
+        
+        // Custom scroll animation function
+        function startScrollAnimation() {
+            const scrollContainer = document.getElementById('scroll-container');
+            const maxScroll = totalScrollHeight - viewportHeight;
+            
+            // Calculate speed based on content length
+            const speedFactor = Math.max(1, Math.min(3, totalScrollHeight / viewportHeight / 2));
+            const pixelsPerFrame = 0.5 * speedFactor;
+            
+            // Animation function
+            function animate() {
+                // Increment scroll position
+                scrollPosition += pixelsPerFrame;
+                
+                // If we've reached the end, pause briefly then reset
+                if (scrollPosition >= maxScroll) {
+                    // Add a brief pause at the end
+                    setTimeout(() => {
+                        // Reset to top with a smooth transition
+                        scrollContainer.style.transition = 'transform 1s ease-in-out';
+                        scrollContainer.style.transform = 'translateY(0)';
+                        
+                        // After transition completes, remove transition and restart animation
+                        setTimeout(() => {
+                            scrollContainer.style.transition = '';
+                            scrollPosition = 0;
+                            scrollAnimationId = requestAnimationFrame(animate);
+                        }, 1000);
+                    }, 2000); // 2 second pause at the end
+                } else {
+                    // Continue scrolling
+                    scrollContainer.style.transform = `translateY(-${scrollPosition}px)`;
+                    scrollAnimationId = requestAnimationFrame(animate);
+                }
+            }
+            
+            // Start the animation
+            scrollAnimationId = requestAnimationFrame(animate);
+        }
+        
+        // Schedule the next refresh
+        function scheduleNextRefresh() {
+            // Clear any existing scheduled refresh
+            if (isRefreshScheduled) {
+                clearTimeout(isRefreshScheduled);
+            }
+            
+            // Set up refresh after interval
+            isRefreshScheduled = setTimeout(() => {
+                document.getElementById('refresh-status').textContent = 'Memperbarui data...';
+                initDashboard();
+            }, REFRESH_INTERVAL);
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            
+            // Format date: 25/07/2023
+            const day = now.getDate().toString().padStart(2, '0');
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const year = now.getFullYear();
+            const dateStr = `${day}/${month}/${year}`;
+            
+            // Format time: 14:30:45 with colon separator
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const timeStr = `${hours}:${minutes}:${seconds}`;
+            
+            document.getElementById('last-update-time').textContent = `${dateStr} ${timeStr}`;
+            document.getElementById('refresh-status').textContent = 'Pembaruan terakhir:';
+        }
+        
+        // Initialize dashboard
+        async function initDashboard() {
+            const loading = document.getElementById('loading');
+            const scrollWrapper = document.getElementById('scroll-wrapper');
+            
+            try {
+                const data = await fetchData();
+                if (data && data.length > 0) {
+                    const doctors = processData(data);
+                    createDoctorCards(doctors);
+                    
+                    loading.classList.add('hidden');
+                    scrollWrapper.classList.remove('hidden');
+                    
+                    // Update last update time
+                    updateLastUpdateTime();
+                } else {
+                    loading.innerHTML = '<p class="text-gray-500">Tidak ada data yang tersedia</p>';
+                }
+            } catch (error) {
+                console.error('Error initializing dashboard:', error);
+                loading.innerHTML = '<p class="text-red-500">Gagal memuat data</p>';
+                document.getElementById('refresh-status').textContent = 'Gagal memperbarui data';
+                
+                // Try again after 30 seconds if there was an error
+                setTimeout(initDashboard, 30000);
+            }
+        }
+        
+        // Initialize dashboard
+        initDashboard();
+        
+        // Handle window resize to adjust animation
+        window.addEventListener('resize', () => {
+            // Recalculate heights and restart animation
+            const scrollWrapper = document.getElementById('scroll-wrapper');
+            const doctorGrid = document.getElementById('doctor-grid');
+            
+            if (scrollWrapper && doctorGrid) {
+                totalScrollHeight = doctorGrid.offsetHeight;
+                viewportHeight = scrollWrapper.offsetHeight;
+                
+                // If animation is running, restart it
+                if (scrollAnimationId) {
+                    cancelAnimationFrame(scrollAnimationId);
+                    scrollAnimationId = null;
+                    startScrollAnimation();
+                }
+            }
         });
-        html += '</div>';
-        pages.push(html);
-      }
-
-      totalPages = pages.length;
-      main.innerHTML = pages.map((p, i) =>
-        `<div class="page ${i === 0 ? 'active' : ''}">${p}</div>`
-      ).join('');
-      currentPage = 0;
-    }
-
-    function nextPage() {
-      const allPages = document.querySelectorAll('.page');
-      if (allPages.length === 0) return;
-      allPages.forEach(p => p.classList.remove('active'));
-      currentPage = (currentPage + 1) % totalPages;
-      allPages[currentPage].classList.add('active');
-    }
-
-    function updateLastUpdate() {
-      const now = new Date();
-      const jam = now.getHours().toString().padStart(2, '0');
-      const menit = now.getMinutes().toString().padStart(2, '0');
-      const detik = now.getSeconds().toString().padStart(2, '0');
-      lastUpdate.textContent = `Terakhir diperbarui: ${jam}:${menit}:${detik}`;
-    }
-
-    function updateClock() {
-      const now = new Date();
-      const jam = now.getHours().toString().padStart(2, '0');
-      const menit = now.getMinutes().toString().padStart(2, '0');
-      const detik = now.getSeconds().toString().padStart(2, '0');
-      const hari = now.toLocaleDateString('id-ID', { weekday: 'long' });
-      const tanggal = now.getDate();
-      const bulan = now.toLocaleDateString('id-ID', { month: 'long' });
-      const tahun = now.getFullYear();
-
-      document.getElementById('jam').textContent = `${jam}:${menit}:${detik}`;
-      document.getElementById('tanggal').textContent = `${hari}, ${tanggal} ${bulan} ${tahun}`;
-
-      // Dark mode otomatis malam hari
-      if (now.getHours() >= 18 || now.getHours() < 6) {
-        document.body.classList.add('dark', 'bg-slate-900', 'text-gray-100');
-      } else {
-        document.body.classList.remove('dark', 'bg-slate-900', 'text-gray-100');
-      }
-    }
-
-    setInterval(updateClock, 1000);
-    setInterval(fetchData, 10000);
-    setInterval(nextPage, 10000);
-    updateClock();
-    fetchData();
-  </script>
-</body>
+        
+        // Sample data for testing when API is not available
+        function loadSampleData() {
+            const sampleData = [
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "SUWITO SANTOSO WIJAYA, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "AHMAD SULAIMAN, TN",
+                    stts: "Sudah"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "BUDI HARTONO, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "JOKO WIDODO PURNOMO, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "HADI SUTRISNO, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "TONO SUPRIYADI, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "DEDI MULYADI, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "AGUS HERMAWAN, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "BAMBANG PAMUNGKAS, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "CAHYO PURNOMO, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "DARMAWAN SETIADI, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Faishol Hamdani Sp. N",
+                    nm_poli: "Klinik Spesialis Saraf",
+                    nm_pasien: "EDI SUMARNO, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "Admin Poli",
+                    nm_poli: "Administrasi",
+                    nm_pasien: "SITI NURHALIZA, NY",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Anita Rahmawati Sp. PD",
+                    nm_poli: "Klinik Spesialis Penyakit Dalam",
+                    nm_pasien: "JOKO SUSILO, TN",
+                    stts: "Sudah"
+                },
+                {
+                    nm_dokter: "dr. Anita Rahmawati Sp. PD",
+                    nm_poli: "Klinik Spesialis Penyakit Dalam",
+                    nm_pasien: "WATI SULISTYOWATI, NY",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Hendra Wijaya Sp. OG",
+                    nm_poli: "Klinik Spesialis Kebidanan",
+                    nm_pasien: "MARIA KRISTINA, NY",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Hendra Wijaya Sp. OG",
+                    nm_poli: "Klinik Spesialis Kebidanan",
+                    nm_pasien: "DEWI SARTIKA, NY",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Rudi Santoso Sp. A",
+                    nm_poli: "Klinik Spesialis Anak",
+                    nm_pasien: "ANDI FIRMANSYAH, AN",
+                    stts: "Sudah"
+                },
+                {
+                    nm_dokter: "dr. Rudi Santoso Sp. A",
+                    nm_poli: "Klinik Spesialis Anak",
+                    nm_pasien: "DINA MARDIANA, AN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Siti Aminah Sp. M",
+                    nm_poli: "Klinik Spesialis Mata",
+                    nm_pasien: "TONO SUPRIYADI, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "dr. Siti Aminah Sp. M",
+                    nm_poli: "Klinik Spesialis Mata",
+                    nm_pasien: "RINA AGUSTINA, NY",
+                    stts: "Sudah"
+                },
+                {
+                    nm_dokter: "dr. Budi Santoso",
+                    nm_poli: "IGD",
+                    nm_pasien: "AGUS HERMAWAN, TN",
+                    stts: "Belum"
+                },
+                {
+                    nm_dokter: "Admin Pendaftaran",
+                    nm_poli: "Administrasi",
+                    nm_pasien: "BUDI SETIAWAN, TN",
+                    stts: "Belum"
+                }
+            ];
+            
+            const doctors = processData(sampleData);
+            createDoctorCards(doctors);
+            
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('scroll-wrapper').classList.remove('hidden');
+            updateLastUpdateTime();
+        }
+        
+        // Uncomment this line to use sample data if API is not available
+        loadSampleData();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96627bcef51a6032',t:'MTc1MzY4NTg2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
