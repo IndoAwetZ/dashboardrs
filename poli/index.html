@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Antrian Poli Spesialis</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    body {
+      font-family: 'Lato', sans-serif;
+      background: rgba(240, 248, 255, 0.8);
+      backdrop-filter: blur(10px);
+      transition: background 1s, color 1s;
+      overflow: hidden;
+    }
+    .glass {
+      background: rgba(59, 130, 246, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+    .dark .glass {
+      background: rgba(30, 58, 138, 0.8);
+    }
+    .page {
+      opacity: 0;
+      transition: opacity 1s;
+      position: absolute;
+      width: 100%;
+    }
+    .page.active {
+      opacity: 1;
+      position: relative;
+    }
+  </style>
+</head>
+<body class="text-gray-900">
+
+  <!-- HEADER -->
+  <header class="glass fixed top-0 w-full flex justify-between items-center px-8 py-3 shadow-md z-10">
+    <div class="text-2xl font-bold">Dashboard Antrian Poli</div>
+    <div id="jam" class="text-4xl font-bold tracking-widest text-center flex-1"></div>
+    <div id="tanggal" class="text-lg font-semibold text-right w-64"></div>
+  </header>
+
+  <!-- MAIN -->
+  <main id="main" class="pt-24 pb-20 px-8 max-w-screen-xl mx-auto relative overflow-hidden h-screen"></main>
+
+  <!-- FOOTER -->
+  <footer class="glass fixed bottom-0 w-full py-2 px-8 flex justify-between items-center text-white z-10">
+    <div class="flex items-center gap-2 text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span id="last-update">Terakhir diperbarui: --:--:--</span>
+    </div>
+    <marquee behavior="scroll" direction="left" scrollamount="5" class="text-sm">
+      Selamat datang di RS Aisyiyah Siti Fatimah Tulungagung — Layanan Antrian Poli Spesialis Hari Ini (Auto Refresh setiap 10 detik)
+    </marquee>
+  </footer>
+
+  <script>
+    const API_URL = 'https://project.rsaisyiyahsitifatimah.com/api/reg-periksa';
+    const main = document.getElementById('main');
+    const lastUpdate = document.getElementById('last-update');
+
+    let currentPage = 0;
+    let totalPages = 0;
+
+    function sensorNama(nama) {
+      return nama.split(' ')
+        .map(p => p.length > 2 ? p[0] + '*'.repeat(p.length - 2) + p.slice(-1) : p)
+        .join(' ');
+    }
+
+    async function fetchData() {
+      try {
+        const res = await fetch(API_URL);
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          const filtered = json.data.filter(item =>
+            item.nm_dokter.toLowerCase() !== 'admin' &&
+            item.nm_poli.toLowerCase() !== 'igd'
+          );
+          renderData(filtered);
+          updateLastUpdate();
+        } else {
+          main.innerHTML = '<p class="text-center text-red-600">❌ Gagal memuat data</p>';
+        }
+      } catch (e) {
+        main.innerHTML = '<p class="text-center text-red-600">⚠️ Error koneksi API</p>';
+      }
+    }
+
+    function renderData(data) {
+      const grouped = {};
+      data.forEach(item => {
+        if (!grouped[item.nm_poli]) grouped[item.nm_poli] = {};
+        if (!grouped[item.nm_poli][item.nm_dokter]) grouped[item.nm_poli][item.nm_dokter] = [];
+        grouped[item.nm_poli][item.nm_dokter].push(item);
+      });
+
+      const pages = [];
+      const perPage = 4; // tampilkan 4 poli per halaman
+      const allPoli = Object.keys(grouped);
+
+      for (let i = 0; i < allPoli.length; i += perPage) {
+        const poliChunk = allPoli.slice(i, i + perPage);
+        let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6">';
+        poliChunk.forEach(poli => {
+          html += `
+            <div class="glass p-4 rounded-xl shadow text-gray-100">
+              <h2 class="text-xl font-semibold border-b pb-2 mb-3">${poli}</h2>
+              ${Object.keys(grouped[poli]).map(dokter => `
+                <div class="mb-3">
+                  <h3 class="text-lg font-medium mb-2">${dokter}</h3>
+                  <ul class="space-y-1 pl-4">
+                    ${grouped[poli][dokter].map(p => `
+                      <li class="flex justify-between bg-white/20 rounded-md px-3 py-1">
+                        <span>${sensorNama(p.nm_pasien)}</span>
+                      </li>
+                    `).join('')}
+                  </ul>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        });
+        html += '</div>';
+        pages.push(html);
+      }
+
+      totalPages = pages.length;
+      main.innerHTML = pages.map((p, i) =>
+        `<div class="page ${i === 0 ? 'active' : ''}">${p}</div>`
+      ).join('');
+      currentPage = 0;
+    }
+
+    function nextPage() {
+      const allPages = document.querySelectorAll('.page');
+      if (allPages.length === 0) return;
+      allPages.forEach(p => p.classList.remove('active'));
+      currentPage = (currentPage + 1) % totalPages;
+      allPages[currentPage].classList.add('active');
+    }
+
+    function updateLastUpdate() {
+      const now = new Date();
+      const jam = now.getHours().toString().padStart(2, '0');
+      const menit = now.getMinutes().toString().padStart(2, '0');
+      const detik = now.getSeconds().toString().padStart(2, '0');
+      lastUpdate.textContent = `Terakhir diperbarui: ${jam}:${menit}:${detik}`;
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const jam = now.getHours().toString().padStart(2, '0');
+      const menit = now.getMinutes().toString().padStart(2, '0');
+      const detik = now.getSeconds().toString().padStart(2, '0');
+      const hari = now.toLocaleDateString('id-ID', { weekday: 'long' });
+      const tanggal = now.getDate();
+      const bulan = now.toLocaleDateString('id-ID', { month: 'long' });
+      const tahun = now.getFullYear();
+
+      document.getElementById('jam').textContent = `${jam}:${menit}:${detik}`;
+      document.getElementById('tanggal').textContent = `${hari}, ${tanggal} ${bulan} ${tahun}`;
+
+      // Dark mode otomatis malam hari
+      if (now.getHours() >= 18 || now.getHours() < 6) {
+        document.body.classList.add('dark', 'bg-slate-900', 'text-gray-100');
+      } else {
+        document.body.classList.remove('dark', 'bg-slate-900', 'text-gray-100');
+      }
+    }
+
+    setInterval(updateClock, 1000);
+    setInterval(fetchData, 10000);
+    setInterval(nextPage, 10000);
+    updateClock();
+    fetchData();
+  </script>
+</body>
+</html>
