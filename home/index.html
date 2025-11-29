@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="id" style="height: 100%;">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Player Fullscreen</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .app-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .content-wrapper {
+      max-width: 600px;
+      width: 100%;
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 16px 0;
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a202c;
+    }
+
+    .instruction-text {
+      margin: 0 0 24px 0;
+      font-size: 16px;
+      color: #4a5568;
+      line-height: 1.6;
+    }
+
+    .upload-area {
+      border: 3px dashed #cbd5e0;
+      border-radius: 12px;
+      padding: 40px 20px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #f7fafc;
+    }
+
+    .upload-area:hover {
+      border-color: #667eea;
+      background: #edf2f7;
+    }
+
+    .upload-area.dragover {
+      border-color: #667eea;
+      background: #e6f0ff;
+    }
+
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .upload-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+    }
+
+    .upload-hint {
+      font-size: 14px;
+      color: #718096;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .btn-select {
+      display: inline-block;
+      padding: 12px 32px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 12px;
+    }
+
+    .btn-select:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .video-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      z-index: 9999;
+    }
+
+    .video-container.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #videoPlayer {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .video-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .video-container:hover .video-controls,
+    .video-controls.show {
+      opacity: 1;
+    }
+
+    .btn-control {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-control:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-close {
+      background: rgba(220, 38, 38, 0.9);
+    }
+
+    .btn-close:hover {
+      background: rgba(220, 38, 38, 1);
+    }
+
+    .time-display {
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      margin-left: auto;
+    }
+
+    @media (max-width: 640px) {
+      .content-wrapper {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .upload-area {
+        padding: 30px 15px;
+      }
+
+      .btn-control {
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="app-container">
+   <div class="content-wrapper">
+    <h1 id="pageTitle">Video Player Fullscreen</h1>
+    <p class="instruction-text" id="instructionText">Upload video Anda untuk menontonnya dalam mode fullscreen. Video akan tersimpan di browser untuk akses offline.</p>
+    <div class="upload-area" id="uploadArea">
+     <div class="upload-icon">
+      🎬
+     </div>
+     <div class="upload-text">
+      Klik atau Seret Video ke Sini
+     </div>
+     <div class="upload-hint">
+      Format: MP4, WebM, OGG
+     </div>
+    </div><input type="file" id="fileInput" accept="video/*"> <button class="btn-select" id="btnSelect">Pilih Video</button>
+   </div>
+  </div>
+  <div class="video-container" id="videoContainer">
+   <video id="videoPlayer" controls></video>
+   <div class="video-controls" id="videoControls"><button class="btn-control" id="btnPlayPause">▶️ Play</button> <button class="btn-control" id="btnFullscreen">⛶ Fullscreen</button> <button class="btn-control btn-close" id="btnClose">✕ Tutup</button>
+    <div class="time-display" id="timeDisplay">
+     0:00 / 0:00
+    </div>
+   </div>
+  </div>
+  <script>
+    const defaultConfig = {
+      page_title: "Video Player Fullscreen",
+      instruction_text: "Upload video Anda untuk menontonnya dalam mode fullscreen. Video akan tersimpan di browser untuk akses offline.",
+      primary_color: "#667eea",
+      secondary_color: "#764ba2",
+      background_color: "#ffffff",
+      text_color: "#1a202c",
+      button_color: "#667eea"
+    };
+
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const btnSelect = document.getElementById('btnSelect');
+    const videoContainer = document.getElementById('videoContainer');
+    const videoPlayer = document.getElementById('videoPlayer');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const btnFullscreen = document.getElementById('btnFullscreen');
+    const btnClose = document.getElementById('btnClose');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const videoControls = document.getElementById('videoControls');
+
+    let hideControlsTimeout;
+
+    async function onConfigChange(config) {
+      document.getElementById('pageTitle').textContent = config.page_title || defaultConfig.page_title;
+      document.getElementById('instructionText').textContent = config.instruction_text || defaultConfig.instruction_text;
+
+      const primaryColor = config.primary_color || defaultConfig.primary_color;
+      const secondaryColor = config.secondary_color || defaultConfig.secondary_color;
+      const backgroundColor = config.background_color || defaultConfig.background_color;
+      const textColor = config.text_color || defaultConfig.text_color;
+      const buttonColor = config.button_color || defaultConfig.button_color;
+
+      document.querySelector('.app-container').style.background = `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`;
+      document.querySelector('.content-wrapper').style.background = backgroundColor;
+      document.getElementById('pageTitle').style.color = textColor;
+      document.querySelector('.btn-select').style.background = buttonColor;
+      document.querySelector('.upload-area:hover').style.borderColor = primaryColor;
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateTimeDisplay() {
+      const current = formatTime(videoPlayer.currentTime);
+      const duration = formatTime(videoPlayer.duration || 0);
+      timeDisplay.textContent = `${current} / ${duration}`;
+    }
+
+    function showControls() {
+      videoControls.classList.add('show');
+      clearTimeout(hideControlsTimeout);
+      hideControlsTimeout = setTimeout(() => {
+        if (!videoPlayer.paused) {
+          videoControls.classList.remove('show');
+        }
+      }, 3000);
+    }
+
+    function handleVideoFile(file) {
+      if (file && file.type.startsWith('video/')) {
+        const url = URL.createObjectURL(file);
+        videoPlayer.src = url;
+        videoContainer.classList.add('active');
+        videoPlayer.play();
+      }
+    }
+
+    btnSelect.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      handleVideoFile(file);
+    });
+
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      handleVideoFile(file);
+    });
+
+    btnPlayPause.addEventListener('click', () => {
+      if (videoPlayer.paused) {
+        videoPlayer.play();
+        btnPlayPause.textContent = '⏸️ Pause';
+      } else {
+        videoPlayer.pause();
+        btnPlayPause.textContent = '▶️ Play';
+      }
+      showControls();
+    });
+
+    btnFullscreen.addEventListener('click', () => {
+      if (videoPlayer.requestFullscreen) {
+        videoPlayer.requestFullscreen();
+      } else if (videoPlayer.webkitRequestFullscreen) {
+        videoPlayer.webkitRequestFullscreen();
+      } else if (videoPlayer.mozRequestFullScreen) {
+        videoPlayer.mozRequestFullScreen();
+      }
+      showControls();
+    });
+
+    btnClose.addEventListener('click', () => {
+      videoPlayer.pause();
+      videoPlayer.src = '';
+      videoContainer.classList.remove('active');
+      fileInput.value = '';
+    });
+
+    videoPlayer.addEventListener('play', () => {
+      btnPlayPause.textContent = '⏸️ Pause';
+    });
+
+    videoPlayer.addEventListener('pause', () => {
+      btnPlayPause.textContent = '▶️ Play';
+    });
+
+    videoPlayer.addEventListener('timeupdate', updateTimeDisplay);
+    videoPlayer.addEventListener('loadedmetadata', updateTimeDisplay);
+
+    videoContainer.addEventListener('mousemove', showControls);
+    videoContainer.addEventListener('click', (e) => {
+      if (e.target === videoContainer || e.target === videoPlayer) {
+        if (videoPlayer.paused) {
+          videoPlayer.play();
+        } else {
+          videoPlayer.pause();
+        }
+      }
+      showControls();
+    });
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.primary_color || defaultConfig.primary_color,
+              set: (value) => {
+                config.primary_color = value;
+                window.elementSdk.setConfig({ primary_color: value });
+              }
+            },
+            {
+              get: () => config.secondary_color || defaultConfig.secondary_color,
+              set: (value) => {
+                config.secondary_color = value;
+                window.elementSdk.setConfig({ secondary_color: value });
+              }
+            },
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.button_color || defaultConfig.button_color,
+              set: (value) => {
+                config.button_color = value;
+                window.elementSdk.setConfig({ button_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["page_title", config.page_title || defaultConfig.page_title],
+          ["instruction_text", config.instruction_text || defaultConfig.instruction_text]
+        ])
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a626ce474cbfd71',t:'MTc2NDQyMjY2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
