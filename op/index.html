@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Operasi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .status-menunggu {
+            background-color: #F59E0B;
+            color: white;
+        }
+        .status-terjadwal {
+            background-color: #10B981;
+            color: white;
+        }
+        .status-selesai {
+            background-color: #3B82F6;
+            color: white;
+        }
+        .status-batal {
+            background-color: #EF4444;
+            color: white;
+        }
+        .doctor-section {
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 2rem;
+            scroll-margin-top: 20px; /* Adds margin for smooth scrolling */
+        }
+        
+        /* Status-based row styling - solid colors with high contrast */
+        .status-row-menunggu {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+        }
+        .status-row-menunggu:hover {
+            background-color: #FDE68A !important;
+        }
+        
+        .status-row-terjadwal {
+            background-color: #D1FAE5;
+            border-left: 4px solid #10B981;
+        }
+        .status-row-terjadwal:hover {
+            background-color: #A7F3D0 !important;
+        }
+        
+        .status-row-selesai {
+            background-color: #DBEAFE;
+            border-left: 4px solid #3B82F6;
+        }
+        .status-row-selesai:hover {
+            background-color: #BFDBFE !important;
+        }
+        
+        .status-row-batal {
+            background-color: #FEE2E2;
+            border-left: 4px solid #EF4444;
+        }
+        .status-row-batal:hover {
+            background-color: #FECACA !important;
+        }
+        
+        .current-date {
+            font-weight: 600;
+        }
+        
+        .header-container {
+            color: white;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 1.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            margin-right: 6px;
+            border-radius: 3px;
+        }
+        
+        .stat-card {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .stat-card-total {
+            background-color: #3B82F6;
+            color: white;
+        }
+        
+        .stat-card-waiting {
+            background-color: #F59E0B;
+            color: white;
+        }
+        
+        .stat-card-scheduled {
+            background-color: #10B981;
+            color: white;
+        }
+        
+        .stat-card-doctors {
+            background-color: #8B5CF6;
+            color: white;
+        }
+        
+        .clock {
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+        
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 20px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .refresh-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .refresh-indicator.show {
+            opacity: 1;
+        }
+        
+        .refresh-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .status-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        .status-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #10B981;
+            position: relative;
+        }
+        
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #10B981;
+            opacity: 0.7;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+            70% {
+                transform: scale(2);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+        
+        .status-text {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .update-info {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-right: 0.5rem;
+        }
+        
+        .date-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            margin-right: 0.5rem;
+        }
+        
+        /* Doctor container with auto-scroll */
+        .doctor-container {
+            height: calc(100vh - 250px);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Auto-scroll container using the provided CSS */
+        .scroll-container {
+            position: absolute;
+            width: 100%;
+            animation: scrollUp 90s linear infinite;
+        }
+        .scroll-container:hover {
+            animation-play-state: paused;
+        }
+        @keyframes scrollUp {
+            0% { transform: translateY(0); }
+            15% { transform: translateY(0); }
+            20% { transform: translateY(-20%); }
+            35% { transform: translateY(-20%); }
+            40% { transform: translateY(-40%); }
+            55% { transform: translateY(-40%); }
+            60% { transform: translateY(-60%); }
+            75% { transform: translateY(-60%); }
+            80% { transform: translateY(-80%); }
+            95% { transform: translateY(-80%); }
+            100% { transform: translateY(-100%); }
+        }
+        
+        /* Fixed header styles */
+        .fixed-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background-color: #f0f4f8;
+            padding-top: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        /* Content wrapper to eliminate gap */
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Auto-scroll indicator */
+        .auto-scroll-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* Highlight current section */
+        .doctor-section.active {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+            transition: box-shadow 0.5s ease;
+        }
+        
+        /* Optimize for 1080p landscape */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 1800px;
+            }
+            
+            .doctor-container {
+                height: calc(100vh - 220px);
+            }
+            
+            .header-container {
+                padding: 1.5rem 2rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .text-lg {
+                font-size: 1.25rem;
+            }
+            
+            .text-xl {
+                font-size: 1.5rem;
+            }
+            
+            .doctor-section {
+                margin-bottom: 1.5rem;
+            }
+            
+            table {
+                font-size: 1rem;
+            }
+            
+            th {
+                font-size: 0.875rem;
+            }
+        }
+        
+        /* Table optimizations for landscape */
+        .landscape-table {
+            width: 100%;
+            table-layout: fixed;
+        }
+        
+        .landscape-table th:nth-child(1),
+        .landscape-table td:nth-child(1) {
+            width: 22%;
+        }
+        
+        .landscape-table th:nth-child(2),
+        .landscape-table td:nth-child(2) {
+            width: 20%;
+        }
+        
+        .landscape-table th:nth-child(3),
+        .landscape-table td:nth-child(3) {
+            width: 30%;
+        }
+        
+        .landscape-table th:nth-child(4),
+        .landscape-table td:nth-child(4) {
+            width: 15%;
+        }
+        
+        .landscape-table th:nth-child(5),
+        .landscape-table td:nth-child(5) {
+            width: 13%;
+        }
+        
+        /* Smooth transition for active section */
+        @keyframes highlight {
+            0% { box-shadow: 0 0 0 0px rgba(59, 130, 246, 0); }
+            50% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5); }
+            100% { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+        }
+        
+        .doctor-section.highlight {
+            animation: highlight 2s ease;
+        }
+        
+        /* Full width container */
+        .container-full {
+            width: 100%;
+            max-width: 100%;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        /* Container for status cards */
+        .container-status {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            backdrop-filter: blur(4px);
+            margin-top: 1rem;
+        }
+        
+        /* Real-time clock styling */
+        .realtime-clock {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        
+        /* Hospital name styling */
+        .hospital-name {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            line-height: 1.2;
+        }
+        
+        /* Dashboard title styling */
+        .dashboard-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            line-height: 1.2;
+        }
+        
+        /* Last update info positioning */
+        .last-update-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Date display in clock */
+        .date-display {
+            font-size: 1rem;
+            color: white;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+        
+        /* No data message styling */
+        .no-data-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            border-radius: 1rem;
+            padding: 3rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .no-data-icon {
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+        }
+        
+        .no-data-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.75rem;
+        }
+        
+        .no-data-text {
+            color: #64748b;
+            font-size: 1.125rem;
+            max-width: 24rem;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-full mx-auto py-4">
+        <div class="content-wrapper">
+            <!-- Fixed header section with stats -->
+            <div class="fixed-header">
+                <!-- Dashboard Header with Title, Date, Time and Stats -->
+                <div class="header-container p-6 mb-4">
+                    <div class="flex flex-row justify-between items-start mb-4">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2">Dashboard Operasi</h1>
+                            <h2 class="text-xl font-medium">RSU 'Aisyiyah Siti Fatimah Tulangan</h2>
+                        </div>
+                        
+                        <!-- Real-time clock with date -->
+                        <div class="realtime-clock">
+                            <div class="date-display" id="currentDateDisplay">Senin, 01 Januari 2023</div>
+                            <div class="clock" id="currentTime">00:00:00</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Container for status cards -->
+                    <div class="container-status">
+                        <div class="grid grid-cols-4 gap-6">
+                            <div class="stat-card stat-card-total">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-white bg-opacity-20 text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h2 class="text-sm font-medium text-white">Total Operasi</h2>
+                                        <p id="totalOps" class="text-2xl font-bold text-white">
+                                            <span class="shimmer inline-block h-8 w-16 rounded"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card stat-card-waiting">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-white bg-opacity-20 text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h2 class="text-sm font-medium text-white">Menunggu</h2>
+                                        <p id="waitingOps" class="text-2xl font-bold text-white">
+                                            <span class="shimmer inline-block h-8 w-16 rounded"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card stat-card-scheduled">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-white bg-opacity-20 text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h2 class="text-sm font-medium text-white">Terjadwal</h2>
+                                        <p id="scheduledOps" class="text-2xl font-bold text-white">
+                                            <span class="shimmer inline-block h-8 w-16 rounded"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card stat-card-doctors">
+                                <div class="flex items-center">
+                                    <div class="p-3 rounded-full bg-white bg-opacity-20 text-white">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-4">
+                                        <h2 class="text-sm font-medium text-white">Total Dokter</h2>
+                                        <p id="totalDoctors" class="text-2xl font-bold text-white">
+                                            <span class="shimmer inline-block h-8 w-16 rounded"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Last update info positioned below container-status -->
+                    <div class="last-update-container">
+                        <div class="update-info" id="lastUpdateInfo">
+                            Pembaruan terakhir: Memuat...
+                        </div>
+                        <div class="status-info">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Online</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Operations by Doctor (scrollable content) -->
+            <div id="doctorContainer" class="doctor-container px-2">
+                <div id="doctorOperations" class="scroll-container">
+                    <!-- Doctor sections will be inserted here -->
+                    <div class="shimmer h-20 w-full rounded-lg mb-4"></div>
+                    <div class="shimmer h-20 w-full rounded-lg mb-4"></div>
+                    <div class="shimmer h-20 w-full rounded-lg mb-4"></div>
+                </div>
+                
+                <!-- No operations message -->
+                <div id="noOperationsMessage" class="hidden no-data-message">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 no-data-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <h3 class="no-data-title">Tidak ada data yang tersedia</h3>
+                    <p class="no-data-text">Belum ada jadwal operasi yang terdaftar dalam sistem.</p>
+                </div>
+            </div>
+            
+            <!-- Auto-scroll indicator -->
+            <div id="autoScrollIndicator" class="auto-scroll-indicator">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                </svg>
+                <span id="autoScrollText">Auto-scroll aktif</span>
+            </div>
+            
+            <!-- Legend for status colors (small at the bottom) -->
+            <div class="mt-6 mb-4 text-center text-gray-600">
+                <div class="legend-item">
+                    <span class="legend-color bg-yellow-500"></span>
+                    <span>Menunggu</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color bg-green-500"></span>
+                    <span>Terjadwal</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color bg-blue-500"></span>
+                    <span>Selesai</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color bg-red-500"></span>
+                    <span>Batal</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Operation Detail Modal -->
+    <div id="operationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800">Detail Operasi</h3>
+                    <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6" id="modalContent">
+                <!-- Modal content will be inserted here -->
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-4">
+                <button id="cancelOperationBtn" class="px-5 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-medium">Batalkan Operasi</button>
+                <button id="updateStatusBtn" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Update Status</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Refresh indicator -->
+    <div id="refreshIndicator" class="refresh-indicator">
+        <svg class="refresh-spinner h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span id="refreshText">Memperbarui data...</span>
+    </div>
+
+    <script>
+        // Global variables
+        let operationsData = [];
+        let doctorOperations = {};
+        let refreshInterval;
+        let nextRefreshTime;
+        let countdownInterval;
+        let lastUpdateTime = null;
+        
+        // DOM elements
+        const doctorOperationsContainer = document.getElementById('doctorOperations');
+        const doctorContainer = document.getElementById('doctorContainer');
+        const noOperationsMessage = document.getElementById('noOperationsMessage');
+        const operationModal = document.getElementById('operationModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalContent = document.getElementById('modalContent');
+        const updateStatusBtn = document.getElementById('updateStatusBtn');
+        const cancelOperationBtn = document.getElementById('cancelOperationBtn');
+        const currentTimeElement = document.getElementById('currentTime');
+        const currentDateDisplayElement = document.getElementById('currentDateDisplay');
+        const refreshIndicator = document.getElementById('refreshIndicator');
+        const refreshText = document.getElementById('refreshText');
+        const lastUpdateInfo = document.getElementById('lastUpdateInfo');
+        const autoScrollIndicator = document.getElementById('autoScrollIndicator');
+        const autoScrollText = document.getElementById('autoScrollText');
+
+        // Update time and date every second
+        function updateTime() {
+            const now = new Date();
+            
+            // Update time
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            currentTimeElement.textContent = `${hours}:${minutes}:${seconds}`;
+            
+            // Update date display
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const formattedDate = now.toLocaleDateString('id-ID', options);
+            currentDateDisplayElement.textContent = formattedDate;
+        }
+        
+        // Format date and time for last update info
+        function formatLastUpdateTime(date) {
+            if (!date) return "Belum diperbarui";
+            
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const day = days[date.getDay()];
+            
+            const dd = String(date.getDate()).padStart(2, '0');
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const yyyy = date.getFullYear();
+            
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${day}, ${dd}-${mm}-${yyyy} ${hours}:${minutes}:${seconds}`;
+        }
+        
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            return date.toLocaleDateString('id-ID', options);
+        }
+        
+        // Update last refresh info
+        function updateLastRefreshInfo() {
+            if (lastUpdateTime) {
+                lastUpdateInfo.textContent = `Pembaruan terakhir: ${formatLastUpdateTime(lastUpdateTime)}`;
+            } else {
+                lastUpdateInfo.textContent = "Pembaruan terakhir: Belum diperbarui";
+            }
+        }
+        
+        // Initial time update
+        updateTime();
+        
+        // Update time every second
+        setInterval(updateTime, 1000);
+
+        // Setup auto-refresh
+        function setupAutoRefresh() {
+            // Clear any existing intervals
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            // Set next refresh time to 1 minute from now
+            nextRefreshTime = new Date();
+            nextRefreshTime.setMinutes(nextRefreshTime.getMinutes() + 1);
+            
+            // Setup refresh interval (every 1 minute)
+            refreshInterval = setInterval(() => {
+                showRefreshIndicator();
+                fetchOperations();
+                
+                // Reset next refresh time
+                nextRefreshTime = new Date();
+                nextRefreshTime.setMinutes(nextRefreshTime.getMinutes() + 1);
+            }, 60000); // 60000 ms = 1 minute
+            
+            // Setup countdown interval
+            countdownInterval = setInterval(updateRefreshCountdown, 1000);
+        }
+        
+        // Update refresh countdown
+        function updateRefreshCountdown() {
+            if (!nextRefreshTime) return;
+            
+            const now = new Date();
+            const diffMs = nextRefreshTime - now;
+            
+            if (diffMs <= 0) {
+                refreshText.textContent = "Memperbarui data...";
+                return;
+            }
+            
+            const diffSecs = Math.floor(diffMs / 1000);
+            refreshText.textContent = `Pembaruan dalam ${diffSecs} detik`;
+        }
+        
+        // Show refresh indicator
+        function showRefreshIndicator() {
+            refreshIndicator.classList.add('show');
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                refreshIndicator.classList.remove('show');
+            }, 3000);
+        }
+
+        // Fetch operations data from API
+        async function fetchOperations() {
+            try {
+                // Show loading state
+                document.getElementById('totalOps').innerHTML = '<span class="shimmer inline-block h-8 w-16 rounded"></span>';
+                document.getElementById('waitingOps').innerHTML = '<span class="shimmer inline-block h-8 w-16 rounded"></span>';
+                document.getElementById('scheduledOps').innerHTML = '<span class="shimmer inline-block h-8 w-16 rounded"></span>';
+                document.getElementById('totalDoctors').innerHTML = '<span class="shimmer inline-block h-8 w-16 rounded"></span>';
+                
+                doctorOperationsContainer.innerHTML = `
+                    <div class="shimmer h-20 w-full rounded-lg mb-4"></div>
+                    <div class="shimmer h-20 w-full rounded-lg mb-4"></div>
+                    <div class="shimmer h-20 w-full rounded-lg mb-4"></div>
+                `;
+                
+                try {
+                    const response = await fetch('https://sub.rsasitifatimah.my.id/api/booking-operasi');
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    
+                    // Check if data has the expected structure
+                    if (data && data.data && Array.isArray(data.data)) {
+                        operationsData = data.data;
+                    } else {
+                        console.error('Unexpected API response structure:', data);
+                        operationsData = [];
+                    }
+                } catch (error) {
+                    console.error('Error fetching from API:', error);
+                    // Use empty array if API fails - no sample data
+                    operationsData = [];
+                }
+                
+                // Update last refresh time
+                lastUpdateTime = new Date();
+                updateLastRefreshInfo();
+                
+                // Group operations by doctor
+                groupOperationsByDoctor();
+                
+                // Update UI
+                updateDashboardStats();
+                renderDoctorOperations();
+                
+                return operationsData;
+            } catch (error) {
+                console.error('Error in fetchOperations:', error);
+                showErrorMessage('Gagal memuat data operasi. Silakan coba lagi nanti.');
+                return [];
+            }
+        }
+
+        // Group operations by doctor
+        function groupOperationsByDoctor() {
+            doctorOperations = {};
+            
+            operationsData.forEach(operation => {
+                const doctorName = operation.nama_dokter || 'Dokter Tidak Diketahui';
+                
+                if (!doctorOperations[doctorName]) {
+                    doctorOperations[doctorName] = [];
+                }
+                
+                doctorOperations[doctorName].push(operation);
+            });
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            // Total operations
+            const totalOps = operationsData.length;
+            
+            // Waiting operations
+            const waitingOps = operationsData.filter(op => op.status === 'Menunggu').length;
+            
+            // Scheduled operations
+            const scheduledOps = operationsData.filter(op => op.status === 'Terjadwal').length;
+            
+            // Total doctors
+            const totalDoctors = Object.keys(doctorOperations).length;
+            
+            // Update the UI
+            document.getElementById('totalOps').textContent = totalOps;
+            document.getElementById('waitingOps').textContent = waitingOps;
+            document.getElementById('scheduledOps').textContent = scheduledOps;
+            document.getElementById('totalDoctors').textContent = totalDoctors;
+        }
+
+        // Render operations grouped by doctor
+        function renderDoctorOperations() {
+            // Clear container
+            doctorOperationsContainer.innerHTML = '';
+            
+            // Check if we have operations
+            if (operationsData.length === 0) {
+                doctorOperationsContainer.classList.add('hidden');
+                noOperationsMessage.classList.remove('hidden');
+                autoScrollIndicator.style.display = 'none';
+                return;
+            } else {
+                doctorOperationsContainer.classList.remove('hidden');
+                noOperationsMessage.classList.add('hidden');
+                if (Object.keys(doctorOperations).length > 1) {
+                    autoScrollIndicator.style.display = 'flex';
+                } else {
+                    autoScrollIndicator.style.display = 'none';
+                }
+            }
+            
+            // Sort doctors by number of operations (descending)
+            const sortedDoctors = Object.keys(doctorOperations).sort((a, b) => {
+                return doctorOperations[b].length - doctorOperations[a].length;
+            });
+            
+            // Render each doctor's section
+            sortedDoctors.forEach(doctorName => {
+                const operations = doctorOperations[doctorName];
+                const pendingCount = operations.filter(op => op.status === 'Menunggu').length;
+                const scheduledCount = operations.filter(op => op.status === 'Terjadwal').length;
+                const completedCount = operations.filter(op => op.status === 'Selesai').length;
+                const cancelledCount = operations.filter(op => op.status === 'Batal').length;
+                
+                const doctorSection = document.createElement('div');
+                doctorSection.className = 'doctor-section bg-white rounded-xl shadow-md overflow-hidden fade-in';
+                
+                // Doctor header
+                const doctorHeader = document.createElement('div');
+                doctorHeader.className = 'p-6 border-b border-gray-200 bg-gray-50';
+                doctorHeader.innerHTML = `
+                    <div class="flex flex-row justify-between items-center">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">${doctorName}</h2>
+                            <p class="text-base text-gray-500 mt-1">
+                                Total: ${operations.length} | 
+                                <span class="text-yellow-600">Menunggu: ${pendingCount}</span> | 
+                                <span class="text-green-600">Terjadwal: ${scheduledCount}</span> | 
+                                <span class="text-blue-600">Selesai: ${completedCount}</span> | 
+                                <span class="text-red-600">Batal: ${cancelledCount}</span>
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                doctorSection.appendChild(doctorHeader);
+                
+                // Operations table container
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'overflow-x-auto';
+                
+                const table = document.createElement('table');
+                table.className = 'min-w-full divide-y divide-gray-200 landscape-table';
+                
+                // Table header
+                const thead = document.createElement('thead');
+                thead.className = 'bg-gray-50';
+                thead.innerHTML = `
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pasien</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal & Waktu</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis Operasi</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruangan</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                `;
+                
+                // Table body
+                const tbody = document.createElement('tbody');
+                tbody.className = 'divide-y divide-gray-200';
+                
+                // Sort operations by date and time
+                const sortedOperations = [...operations].sort((a, b) => {
+                    // Sort by date first
+                    const dateA = new Date(a.tanggal);
+                    const dateB = new Date(b.tanggal);
+                    
+                    if (dateA.getTime() !== dateB.getTime()) {
+                        return dateA - dateB;
+                    }
+                    
+                    // If same date, sort by time
+                    const timeA = a.jam_mulai || '00:00';
+                    const timeB = b.jam_mulai || '00:00';
+                    return timeA.localeCompare(timeB);
+                });
+                
+                // Show all operations without limit
+                sortedOperations.forEach(operation => {
+                    // Status-based row class
+                    let statusRowClass = '';
+                    let statusClass = 'status-menunggu';
+                    
+                    if (operation.status === 'Menunggu') {
+                        statusRowClass = 'status-row-menunggu';
+                        statusClass = 'status-menunggu';
+                    } else if (operation.status === 'Terjadwal') {
+                        statusRowClass = 'status-row-terjadwal';
+                        statusClass = 'status-terjadwal';
+                    } else if (operation.status === 'Selesai') {
+                        statusRowClass = 'status-row-selesai';
+                        statusClass = 'status-selesai';
+                    } else if (operation.status === 'Batal') {
+                        statusRowClass = 'status-row-batal';
+                        statusClass = 'status-batal';
+                    }
+                    
+                    const row = document.createElement('tr');
+                    row.className = `${statusRowClass} cursor-pointer hover:bg-opacity-80`;
+                    row.setAttribute('data-id', operation.no_rawat);
+                    
+                    // Format date
+                    const formattedDate = formatDate(operation.tanggal);
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div>
+                                    <div class="text-base font-medium text-gray-900">${operation.nama_pasien || 'Tidak ada nama'}</div>
+                                    <div class="text-sm text-gray-500">${operation.no_rawat || 'ID tidak tersedia'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-base text-gray-900">${formattedDate}</div>
+                            <div class="text-sm text-gray-500">${operation.jam_mulai || '00:00'} - ${operation.jam_selesai || '00:00'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-base text-gray-900">${operation.nm_perawatan || 'Tidak ditentukan'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-base text-gray-900">${operation.ruang_operasi || 'Tidak ditentukan'}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="status-badge ${statusClass}">${operation.status}</span>
+                        </td>
+                    `;
+                    
+                    tbody.appendChild(row);
+                });
+                
+                table.appendChild(thead);
+                table.appendChild(tbody);
+                tableContainer.appendChild(table);
+                doctorSection.appendChild(tableContainer);
+                
+                doctorOperationsContainer.appendChild(doctorSection);
+            });
+            
+            // Add event listeners to rows for showing details
+            document.querySelectorAll('tr[data-id]').forEach(row => {
+                row.addEventListener('click', () => {
+                    const operationId = row.getAttribute('data-id');
+                    showOperationDetails(operationId);
+                });
+            });
+        }
+
+        // Show operation details in modal
+        function showOperationDetails(operationId) {
+            const operation = operationsData.find(op => op.no_rawat === operationId);
+            
+            if (!operation) {
+                showErrorMessage('Data operasi tidak ditemukan');
+                return;
+            }
+            
+            // Format date
+            const opDate = new Date(operation.tanggal);
+            const formattedDate = opDate.toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            // Status-based styling for modal
+            let statusColorClass = 'bg-yellow-50 border-yellow-500';
+            
+            if (operation.status === 'Terjadwal') {
+                statusColorClass = 'bg-green-50 border-green-500';
+            } else if (operation.status === 'Selesai') {
+                statusColorClass = 'bg-blue-50 border-blue-500';
+            } else if (operation.status === 'Batal') {
+                statusColorClass = 'bg-red-50 border-red-500';
+            }
+            
+            // Populate modal content
+            modalContent.innerHTML = `
+                <div class="space-y-6">
+                    <div class="p-4 ${statusColorClass} border-l-4 rounded-md">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <h3 class="text-base font-medium">Status Operasi: ${operation.status}</h3>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">Pasien</h4>
+                            <p class="text-lg font-medium text-gray-900">${operation.nama_pasien || 'Tidak ada nama'}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">No. Rawat</h4>
+                            <p class="text-lg font-medium text-gray-900">${operation.no_rawat || 'Tidak tersedia'}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">Tanggal Operasi</h4>
+                            <p class="text-lg font-medium text-gray-900">${formattedDate}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">Waktu Operasi</h4>
+                            <p class="text-lg font-medium text-gray-900">${operation.jam_mulai || '00:00'} - ${operation.jam_selesai || '00:00'}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">Dokter</h4>
+                            <p class="text-lg font-medium text-gray-900">${operation.nama_dokter || 'Tidak ditentukan'}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">Jenis Operasi</h4>
+                            <p class="text-lg font-medium text-gray-900">${operation.nm_perawatan || 'Tidak ditentukan'}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500 mb-1">Ruangan</h4>
+                            <p class="text-lg font-medium text-gray-900">${operation.ruang_operasi || 'Tidak ditentukan'}</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500 mb-2">Update Status</h4>
+                        <select id="statusUpdateSelect" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base">
+                            <option value="Menunggu" ${operation.status === 'Menunggu' ? 'selected' : ''}>Menunggu</option>
+                            <option value="Terjadwal" ${operation.status === 'Terjadwal' ? 'selected' : ''}>Terjadwal</option>
+                            <option value="Selesai" ${operation.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                            <option value="Batal" ${operation.status === 'Batal' ? 'selected' : ''}>Batal</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            
+            // Store operation ID for action buttons
+            updateStatusBtn.setAttribute('data-id', operationId);
+            cancelOperationBtn.setAttribute('data-id', operationId);
+            
+            // Show/hide cancel button based on status
+            cancelOperationBtn.style.display = (operation.status === 'Batal') ? 'none' : 'block';
+            
+            // Show modal
+            operationModal.classList.remove('hidden');
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            alert(message);
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial data fetch
+            fetchOperations();
+            
+            // Setup auto-refresh
+            setupAutoRefresh();
+            
+            // Close operation modal
+            closeModalBtn.addEventListener('click', () => {
+                operationModal.classList.add('hidden');
+            });
+            
+            // Update status button
+            updateStatusBtn.addEventListener('click', () => {
+                const operationId = updateStatusBtn.getAttribute('data-id');
+                const newStatus = document.getElementById('statusUpdateSelect').value;
+                
+                // In a real application, you would make an API call here
+                // For this demo, we'll update the local data
+                const operationIndex = operationsData.findIndex(op => op.no_rawat === operationId);
+                if (operationIndex !== -1) {
+                    operationsData[operationIndex].status = newStatus;
+                    
+                    // Update UI
+                    groupOperationsByDoctor();
+                    updateDashboardStats();
+                    renderDoctorOperations();
+                    
+                    // Close modal
+                    operationModal.classList.add('hidden');
+                    
+                    // Show success message
+                    alert('Status operasi berhasil diperbarui');
+                }
+            });
+            
+            // Cancel operation button
+            cancelOperationBtn.addEventListener('click', () => {
+                const operationId = cancelOperationBtn.getAttribute('data-id');
+                
+                // In a real application, you would make an API call here
+                // For this demo, we'll update the local data
+                const operationIndex = operationsData.findIndex(op => op.no_rawat === operationId);
+                if (operationIndex !== -1) {
+                    operationsData[operationIndex].status = 'Batal';
+                    
+                    // Update UI
+                    groupOperationsByDoctor();
+                    updateDashboardStats();
+                    renderDoctorOperations();
+                    
+                    // Close modal
+                    operationModal.classList.add('hidden');
+                    
+                    // Show success message
+                    alert('Operasi berhasil dibatalkan');
+                }
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === operationModal) {
+                    operationModal.classList.add('hidden');
+                }
+            });
+            
+            // Adjust doctor container height on window resize
+            window.addEventListener('resize', () => {
+                // Calculate the height of the fixed header
+                const fixedHeader = document.querySelector('.fixed-header');
+                const fixedHeaderHeight = fixedHeader.offsetHeight;
+                
+                // Adjust the height of the doctor container
+                doctorContainer.style.height = `calc(100vh - ${fixedHeaderHeight + 80}px)`;
+            });
+            
+            // Initial adjustment
+            setTimeout(() => {
+                // Calculate the height of the fixed header
+                const fixedHeader = document.querySelector('.fixed-header');
+                const fixedHeaderHeight = fixedHeader.offsetHeight;
+                
+                // Adjust the height of the doctor container
+                doctorContainer.style.height = `calc(100vh - ${fixedHeaderHeight + 80}px)`;
+            }, 100);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96500e7b31da40a7',t:'MTc1MzQ5MjYzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
