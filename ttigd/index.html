@@ -267,7 +267,7 @@
       .divider-line { width: 1px; height: 30px; background: #ddd; }
       .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; flex: 1; font-size: 1.1rem; font-weight: 900; color: #ccc; }
 
-      /* SISI KANAN (50%): PANEL KHUSUS IGD DENGAN GRID 3X3 */
+      /* SISI KANAN (50%): PANEL KHUSUS IGD DENGAN HEADER JUMBO */
       .igd-panel {
         background: white;
         border-radius: 12px;
@@ -279,14 +279,16 @@
         min-height: 0;
       }
 
+      /* Header IGD Baru: Aksen Merah Medis, Lebih Luas & Sangat Kontras */
       .igd-top-bar {
-        background: var(--dark-brown);
-        padding: 8px 14px;
+        background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
+        padding: 12px 18px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 3px solid var(--red-danger);
+        border-bottom: 3px solid #ff5252;
         flex-shrink: 0;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.12);
       }
       .igd-title-wrap {
         display: flex;
@@ -294,38 +296,49 @@
       }
       .igd-title-wrap .title {
         font-weight: 900;
-        font-size: 1.05rem;
+        font-size: 1.25rem;
         color: #fff;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.8px;
+        line-height: 1.1;
       }
       .igd-title-wrap .sub {
-        font-size: 0.68rem;
-        color: #ddd;
+        font-size: 0.75rem;
+        color: #ffcdd2;
         text-transform: uppercase;
         font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-top: 3px;
       }
+      
+      /* Badges Counter IGD: Jumbo, Tegas, & Jelas Terbaca */
       .igd-counter-badges {
         display: flex;
-        gap: 8px;
+        gap: 12px;
       }
       .counter-badge {
-        padding: 4px 10px;
-        border-radius: 8px;
+        padding: 6px 14px;
+        border-radius: 10px;
         font-weight: 900;
-        font-size: 0.78rem;
+        font-size: 0.85rem;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       }
       .counter-badge.avail {
-        background: rgba(46, 125, 50, 0.25);
-        color: #4ade80;
-        border: 1px solid rgba(74, 222, 128, 0.4);
+        background: #ffffff;
+        color: var(--green-success);
+        border: 2px solid #a5d6a7;
       }
       .counter-badge.occu {
-        background: rgba(198, 40, 40, 0.25);
-        color: #f87171;
-        border: 1px solid rgba(248, 113, 113, 0.4);
+        background: #ffffff;
+        color: var(--red-danger);
+        border: 2px solid #ffcdd2;
+      }
+      .counter-badge-val {
+        font-size: 1.6rem;
+        line-height: 1;
+        font-weight: 900;
       }
 
       /* Grid Presisi 3 Kolom x 3 Baris Menghabiskan Area */
@@ -514,10 +527,12 @@
           </div>
           <div class="igd-counter-badges">
             <div class="counter-badge avail">
-              <span>TERSEDIA:</span> <span id="igd-total-available" style="font-size:1.05rem;">0</span>
+              <span>TERSEDIA</span>
+              <span class="counter-badge-val" id="igd-total-available">0</span>
             </div>
             <div class="counter-badge occu">
-              <span>TERISI:</span> <span id="igd-total-occupied" style="font-size:1.05rem;">0</span>
+              <span>TERISI</span>
+              <span class="counter-badge-val" id="igd-total-occupied">0</span>
             </div>
           </div>
         </div>
