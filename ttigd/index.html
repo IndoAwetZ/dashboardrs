@@ -160,7 +160,6 @@
         min-height: 0;
       }
 
-      /* ranap-tab-bar disamakan presisi tingginya (height: 68px) dengan igd-top-bar */
       .ranap-tab-bar {
         background: var(--dark-brown);
         display: flex;
@@ -170,7 +169,6 @@
         flex-shrink: 0;
       }
 
-      /* Font size & padding ranap-tab-item disamakan proporsinya */
       .ranap-tab-item {
         flex: 1;
         min-width: 0;
@@ -294,7 +292,6 @@
         min-height: 0;
       }
 
-      /* igd-top-bar dikunci tingginya (height: 68px) sejajar ranap-tab-bar */
       .igd-top-bar {
         background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
         padding: 0 18px;
@@ -695,9 +692,8 @@
                     
         let html = '<div class="ranap-grid-layout">';
         for (const bangsal in bedsByBangsal) {
-          const availCount = bedsByBangsal[availCountKey => isAvailable(availCountKey)].length;
+          const availCount = bedsByBangsal[bangsal].filter(isAvailable).length;
           const occuCount = bedsByBangsal[bangsal].filter(isOccupied).length;
-          const validAvailCount = bedsByBangsal[bangsal].filter(isAvailable).length;
           const currentClass = bedsByBangsal[bangsal][0]?.kelas || 'Kelas 3';
                               
           html += `
@@ -713,7 +709,7 @@
                 </div>
                 <div class="divider-line"></div>
                 <div class="ranap-stat-unit avail">
-                  <div class="val">${validAvailCount}</div>
+                  <div class="val">${availCount}</div>
                   <div class="lbl">Tersedia</div>
                 </div>
                 <div class="divider-line"></div>
