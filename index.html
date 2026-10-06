@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Ketersediaan Tempat Tidur &amp; IGD - RSUASF</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --dark-brown: #3e2723;
+        --gold: #d4af37;
+        --light-bg: #fdfaf5;
+        --green-success: #2e7d32;
+        --red-danger: #c62828;
+        --blue-igd: #0284c7;
+      }
+
+      * { box-sizing: border-box; }
+
+      body { 
+        background-color: var(--light-bg); 
+        color: var(--dark-brown);
+        font-family: 'Lato', sans-serif;
+        height: 100vh;
+        overflow: hidden;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Header Layout */
+      .header {
+        background: var(--dark-brown);
+        color: var(--gold);
+        padding: 15px 30px;
+        border-bottom: 5px solid var(--gold);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        height: 110px;
+      }
+
+      .brand-section h1 { 
+        font-weight: 900; 
+        font-size: 2.2rem; 
+        margin: 0; 
+        letter-spacing: 1px; 
+        line-height: 1.1;
+      }
+      .brand-section .sub-title { 
+        font-size: 1.25rem; 
+        color: #fff; 
+        opacity: 0.9; 
+        font-weight: 700;
+        margin-top: 3px;
+      }
+      
+      #current-date { 
+        font-size: 1.1rem; 
+        font-weight: 700; 
+        color: var(--gold); 
+        text-transform: uppercase; 
+        letter-spacing: 0.5px;
+      }
+      #current-time { 
+        font-size: 2.8rem; 
+        font-weight: 900; 
+        color: var(--gold); 
+        line-height: 1; 
+      }
+
+      /* Wrapper Pembagian 75% Ranap & 25% IGD */
+      .page-wrapper {
+        display: grid;
+        grid-template-columns: 75% 25%;
+        flex: 1;
+        overflow: hidden;
+        min-height: 0;
+      }
+
+      /* SISI KIRI (75%): MAIN CONTAINER RAWAT INAP */
+      .main-container { 
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 270px 1fr;
+        gap: 12px;
+        overflow: hidden;
+        min-height: 0;
+        border-right: 4px solid var(--gold);
+      }
+
+      .sidebar-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .bor-card {
+        background: var(--dark-brown);
+        color: white;
+        border-radius: 12px;
+        padding: 14px 10px;
+        text-align: center;
+        border-bottom: 5px solid var(--gold);
+        box-shadow: 0 4px 12px rgba(62, 39, 35, 0.1);
+      }
+      .bor-value {
+        font-size: 2.8rem;
+        font-weight: 900;
+        color: var(--gold);
+        line-height: 1;
+        margin: 4px 0;
+      }
+      .bor-label { font-size: 0.8rem; font-weight: 700; color: #ccc; letter-spacing: 0.5px; }
+
+      .summary-indicator-card {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        box-shadow: 0 4px 12px rgba(62, 39, 35, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+      }
+
+      .indicator-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 10px 8px;
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 0.85rem;
+        flex: 1;
+        gap: 6px;
+      }
+      .indicator-item.available { background: rgba(46, 125, 50, 0.08); color: var(--green-success); }
+      .indicator-item.occupied { background: rgba(198, 40, 40, 0.08); color: var(--red-danger); }
+      
+      .indicator-val { 
+        font-size: 2.8rem; 
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .content-panel {
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 6px 16px rgba(62, 39, 35, 0.06);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-top: 6px solid var(--gold);
+        min-height: 0;
+      }
+
+      .tabs-header {
+        background: var(--dark-brown);
+        display: flex;
+        flex-wrap: wrap;
+        border-bottom: 3px solid var(--gold);
+      }
+
+      .tab-btn {
+        flex: 1;
+        min-width: 80px;
+        padding: 10px 4px;
+        background: transparent;
+        border: none;
+        color: white;
+        font-weight: 900;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .tab-btn span { font-size: 0.7rem; font-weight: 400; opacity: 0.8; }
+      .tab-btn.active {
+        background: var(--gold);
+        color: var(--dark-brown);
+      }
+      .tab-btn.active span { color: var(--dark-brown); font-weight: 700; }
+
+      .tab-content-wrapper {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .tab-pane {
+        display: none;
+        flex: 1;
+        min-height: 0;
+      }
+      .tab-pane.active {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .bangsal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        flex: 1;
+        align-content: stretch;
+      }
+
+      .bangsal-card {
+        background: #faf7f2;
+        border-radius: 10px;
+        border-left: 5px solid var(--gold);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .bangsal-header {
+        background: #f1ebd9;
+        padding: 8px 12px;
+        font-weight: 900;
+        font-size: 1rem;
+        color: var(--dark-brown);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+      }
+      .bangsal-class {
+        font-size: 0.7rem;
+        background: var(--dark-brown);
+        color: var(--gold);
+        padding: 2px 6px;
+        border-radius: 5px;
+      }
+
+      .bangsal-body {
+        padding: 10px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex: 1;
+      }
+
+      .stat-mini-box { text-align: center; flex: 1; }
+      .stat-mini-box .val { font-size: 1.8rem; font-weight: 900; line-height: 1; }
+      .stat-mini-box .lbl { font-size: 0.75rem; font-weight: 700; color: #777; margin-top: 4px; text-transform: uppercase; }
+      
+      .stat-mini-box.total .val { color: var(--dark-brown); }
+      .stat-mini-box.avail .val { color: var(--green-success); }
+      .stat-mini-box.occu .val { color: var(--red-danger); }
+
+      .divider-line { width: 1px; height: 35px; background: #ddd; }
+      .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; flex: 1; font-size: 1.2rem; font-weight: 900; color: #ccc; }
+
+      /* SISI KANAN (25%): PANEL KHUSUS IGD */
+      .igd-panel {
+        background: #fff;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-top: 6px solid var(--red-danger);
+      }
+
+      .igd-header {
+        background: var(--red-danger);
+        color: white;
+        border-radius: 10px;
+        padding: 12px 10px;
+        text-align: center;
+        font-weight: 900;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 10px rgba(198, 40, 40, 0.2);
+      }
+      .igd-header .title { font-size: 1.25rem; letter-spacing: 0.5px; }
+      .igd-header .sub { font-size: 0.75rem; opacity: 0.9; font-weight: 400; text-transform: uppercase; margin-top: 2px; }
+
+      .igd-summary-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .igd-mini-stat {
+        border-radius: 10px;
+        padding: 10px 6px;
+        text-align: center;
+      }
+      .igd-mini-stat.avail { background: rgba(46, 125, 50, 0.1); color: var(--green-success); }
+      .igd-mini-stat.occu { background: rgba(198, 40, 40, 0.1); color: var(--red-danger); }
+      .igd-mini-stat .val { font-size: 2rem; font-weight: 900; line-height: 1; }
+      .igd-mini-stat .lbl { font-size: 0.7rem; font-weight: 700; margin-top: 4px; }
+
+      .igd-list-container {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-right: 2px;
+      }
+
+      .igd-item-card {
+        background: #faf7f2;
+        border: 1px solid #ebdcc5;
+        border-left: 5px solid var(--red-danger);
+        border-radius: 8px;
+        padding: 8px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .igd-item-card .name { font-weight: 900; font-size: 0.88rem; color: var(--dark-brown); }
+      .igd-item-card .code { font-size: 0.7rem; color: #777; }
+      .igd-badge {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-weight: 900;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+      }
+      .igd-badge.available { background: var(--green-success); color: white; }
+      .igd-badge.occupied { background: var(--red-danger); color: white; }
+
+      .fade-in { animation: fadeIn 0.3s ease-in; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+      /* Responsive adjustments */
+      @media (max-width: 992px) {
+        .page-wrapper {
+          grid-template-columns: 1fr;
+          overflow-y: auto;
+        }
+        body { height: auto; overflow: auto; }
+        .main-container { border-right: none; border-bottom: 4px solid var(--gold); }
+        .igd-panel { min-height: 400px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div class="header">
+      <div class="brand-section">
+        <h1>KETERSEDIAAN TEMPAT TIDUR</h1>
+        <div class="sub-title">RS AISYIYAH SITI FATIMAH</div>
+      </div>
+      <div class="text-center text-md-end">
+        <div id="current-date">-</div>
+        <div id="current-time">00:00:00</div>
+      </div>
+    </div>
+
+    <div class="page-wrapper">
+      <!-- SISI KIRI: 75% RAWAT INAP REGULER -->
+      <div class="main-container">
+        <div class="sidebar-panel">
+          <div class="bor-card">
+            <div class="bor-label">BOR REALTIME RANAP</div>
+            <div class="bor-value"><span id="bor-total">0</span>%</div>
+            <div class="bor-label">EXCL. IGD &amp; VK</div>
+          </div>
+
+          <div class="summary-indicator-card">
+            <div class="indicator-item available">
+              <div>BED RANAP TERSEDIA</div>
+              <div class="indicator-val" id="total-available">0</div>
+            </div>
+            <div class="indicator-item occupied">
+              <div>BED RANAP TERISI</div>
+              <div class="indicator-val" id="total-occupied">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-panel">
+          <div class="tabs-header">
+            <button class="tab-btn active" id="tab-irna1" onclick="switchTab('irna1')">
+              IRNA 1
+              <span>Tersedia: <strong id="irna1-available-icon">0</strong></span>
+            </button>
+            <button class="tab-btn" id="tab-irna2" onclick="switchTab('irna2')">
+              IRNA 2
+              <span>Tersedia: <strong id="irna2-available-icon">0</strong></span>
+            </button>
+            <button class="tab-btn" id="tab-icu" onclick="switchTab('icu')">
+              ICU / INTENSIF
+              <span>Tersedia: <strong id="icu-available-icon">0</strong></span>
+            </button>
+            <button class="tab-btn" id="tab-bersalin" onclick="switchTab('bersalin')">
+              KEBIDANAN
+              <span>Tersedia: <strong id="bersalin-available-icon">0</strong></span>
+            </button>
+            <button class="tab-btn" id="tab-bayi" onclick="switchTab('bayi')">
+              PERINATOLOGI
+              <span>Tersedia: <strong id="bayi-available-icon">0</strong></span>
+            </button>
+          </div>
+
+          <div class="tab-content-wrapper">
+            <div id="irna1-container" class="tab-pane active fade-in">
+              <div class="text-center p-4 text-muted">Memuat data...</div>
+            </div>
+            <div id="irna2-container" class="tab-pane fade-in"></div>
+            <div id="icu-container" class="tab-pane fade-in"></div>
+            <div id="bersalin-container" class="tab-pane fade-in"></div>
+            <div id="bayi-container" class="tab-pane fade-in"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SISI KANAN: 25% KHUSUS IGD -->
+      <div class="igd-panel">
+        <div class="igd-header">
+          <div class="title">INSTALASI GAWAT DARURAT</div>
+          <div class="sub">OBSERVASI &amp; TINDAKAN MEDIS</div>
+        </div>
+
+        <div class="igd-summary-grid">
+          <div class="igd-mini-stat avail">
+            <div class="val" id="igd-total-available">0</div>
+            <div class="lbl">TERSEDIA</div>
+          </div>
+          <div class="igd-mini-stat occu">
+            <div class="val" id="igd-total-occupied">0</div>
+            <div class="lbl">TERISI</div>
+          </div>
+        </div>
+
+        <div class="igd-list-container" id="igd-list">
+          <div class="text-center p-3 text-muted">Memuat bed IGD...</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const nursingStations = {
+        irna1: ['AHMAD DAHLAN', 'NUSAIBAT', 'RUFAIDAH', 'ZAHRAH', 'IBNU NAFIS', 'IBNU SINA', 'USMAN', 'WALIDAH'],
+        irna2: ['ABU BAKAR', 'AISYAH', 'SALWA', 'AQOBAH 1', 'AQOBAH 2', 'UMAR'],
+        icu: ['ICU'],
+        bersalin: ['MARWAH', 'KHODIJAH', 'SHAFA'],
+        bayi: ['AROFAH Kelas 3', 'AROFAH Kelas 2', 'AROFAH Kelas 1']
+      };
+
+      const sectionKeys = ['irna1', 'irna2', 'icu', 'bersalin', 'bayi'];
+      let activeTabIndex = 0;
+
+      // Status helper
+      const isAvailable = (bed) => bed.status === 'KOSONG' || bed.status === 'DIBOOKING';
+      const isOccupied = (bed) => bed.status === 'ISI';
+
+      // Deteksi Bed IGD
+      function isIgdUnit(bed) {
+        const bangsalName = (bed.nm_bangsal || '').toUpperCase().trim();
+        const kamarCode = (bed.kd_kamar || '').toUpperCase().trim();
+        return bangsalName.includes('IGD') || kamarCode.startsWith('IGD');
+      }
+
+      // Deteksi Eksklusi VK (untuk penghitungan BOR reguler)
+      function isVkUnit(bed) {
+        const bangsalName = (bed.nm_bangsal || '').toUpperCase().trim();
+        const kamarCode = (bed.kd_kamar || '').toUpperCase().trim();
+        return bangsalName.includes('VK') || bangsalName.includes('BERSALIN') || kamarCode.startsWith('VK');
+      }
+
+      function switchTab(sectionId) {
+        sectionKeys.forEach(key => {
+          document.getElementById(`tab-${key}`).classList.remove('active');
+          document.getElementById(`${key}-container`).classList.remove('active');
+        });
+        document.getElementById(`tab-${sectionId}`).classList.add('active');
+        document.getElementById(`${sectionId}-container`).classList.add('active');
+        activeTabIndex = sectionKeys.indexOf(sectionId);
+      }
+
+      // Rotasi Tab otomatis setiap 10 detik
+      setInterval(() => {
+        activeTabIndex = (activeTabIndex + 1) % sectionKeys.length;
+        switchTab(sectionKeys[activeTabIndex]);
+      }, 10000);
+
+      function updateDateTime() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').textContent = now.toLocaleDateString('id-ID', options);
+        document.getElementById('current-time').textContent = now.toLocaleTimeString('id-ID');
+      }
+      updateDateTime();
+      setInterval(updateDateTime, 1000);
+
+      async function fetchData() {
+        try {
+          const apiUrl = 'https://project.rsaisyiyahsitifatimah.com/api/ketersediaan-tt';
+          const res = await fetch(apiUrl).then(r => r.json()).catch(() => null);
+
+          let rawBeds = res;
+          if (!rawBeds || rawBeds.length === 0) {
+            console.warn('API kosong atau gagal, memuat simulasi data...');
+            rawBeds = generateSampleData();
+          }
+
+          // 1. Pisahkan Bed IGD untuk sisi kanan (25%)
+          const igdBeds = rawBeds.filter(bed => isIgdUnit(bed));
+          updateIgdPanel(igdBeds);
+
+          // 2. Saring bed reguler untuk sisi kiri (75%) - Eksklusikan IGD & VK dari BOR
+          const regularBeds = rawBeds.filter(bed => !isIgdUnit(bed) && !isVkUnit(bed));
+          updateDashboard(regularBeds);
+          calculateRealtimeBOR(regularBeds);
+
+        } catch (error) {
+          console.error('Gagal mengambil data ketersediaan TT:', error);
+        }
+      }
+
+      function generateSampleData() {
+        const bangsals = [...nursingStations.irna1, ...nursingStations.irna2, ...nursingStations.icu, ...nursingStations.bersalin, ...nursingStations.bayi];
+        const data = [];
+        const statuses = ['KOSONG', 'ISI', 'DIBOOKING']; 
+        const kelas = ['Kelas 1', 'Kelas 2', 'Kelas 3', 'VIP'];
+
+        bangsals.forEach(bangsal => {
+          for (let i = 1; i <= 4; i++) {
+            data.push({
+              kd_kamar: `\({bangsal.substring(0, 3)}\){i}`,
+              nm_bangsal: bangsal,
+              kelas: kelas[Math.floor(Math.random() * kelas.length)],
+              status: statuses[Math.floor(Math.random() * statuses.length)]
+            });
+          }
+        });
+
+        // Contoh dummy IGD
+        for (let i = 1; i <= 8; i++) {
+          data.push({
+            kd_kamar: `IGD-0${i}`,
+            nm_bangsal: 'IGD',
+            kelas: 'IGD',
+            status: i % 2 === 0 ? 'ISI' : 'KOSONG'
+          });
+        }
+
+        return data;
+      }
+
+      function updateDashboard(data) {
+        const groupedData = { irna1: [], irna2: [], icu: [], bersalin: [], bayi: [], others: [] };
+        
+        data.forEach(bed => {
+          if (nursingStations.irna1.includes(bed.nm_bangsal)) groupedData.irna1.push(bed);
+          else if (nursingStations.irna2.includes(bed.nm_bangsal)) groupedData.irna2.push(bed);
+          else if (nursingStations.icu.includes(bed.nm_bangsal)) groupedData.icu.push(bed);
+          else if (nursingStations.bersalin.includes(bed.nm_bangsal)) groupedData.bersalin.push(bed);
+          else if (nursingStations.bayi.includes(bed.nm_bangsal)) groupedData.bayi.push(bed);
+          else groupedData.others.push(bed);
+        });
+
+        updateSection('irna1', groupedData.irna1);
+        updateSection('irna2', groupedData.irna2);
+        updateSection('icu', groupedData.icu);
+        updateSection('bersalin', groupedData.bersalin);
+        updateSection('bayi', groupedData.bayi);
+
+        document.getElementById('irna1-available-icon').textContent = groupedData.irna1.filter(isAvailable).length;
+        document.getElementById('irna2-available-icon').textContent = groupedData.irna2.filter(isAvailable).length;
+        document.getElementById('icu-available-icon').textContent = groupedData.icu.filter(isAvailable).length;
+        document.getElementById('bersalin-available-icon').textContent = groupedData.bersalin.filter(isAvailable).length;
+        document.getElementById('bayi-available-icon').textContent = groupedData.bayi.filter(isAvailable).length;
+      }
+
+      function updateSection(sectionId, beds) {
+        const container = document.getElementById(`${sectionId}-container`);
+        const bedsByBangsal = {};
+        beds.forEach(bed => {
+          if (!bedsByBangsal[bed.nm_bangsal]) bedsByBangsal[bed.nm_bangsal] = [];
+          bedsByBangsal[bed.nm_bangsal].push(bed);
+        });
+                    
+        let html = '<div class="bangsal-grid">';
+        for (const bangsal in bedsByBangsal) {
+          const availCount = bedsByBangsal[bangsal].filter(isAvailable).length;
+          const occuCount = bedsByBangsal[bangsal].filter(isOccupied).length;
+          const currentClass = bedsByBangsal[bangsal][0]?.kelas || 'Kelas 3';
+                              
+          html += `
+            <div class="bangsal-card">
+              <div class="bangsal-header">
+                <div>${bangsal}</div>
+                <div class="bangsal-class">${currentClass}</div>
+              </div>
+              <div class="bangsal-body">
+                <div class="stat-mini-box total">
+                  <div class="val">${bedsByBangsal[bangsal].length}</div>
+                  <div class="lbl">Total</div>
+                </div>
+                <div class="divider-line"></div>
+                <div class="stat-mini-box avail">
+                  <div class="val">${availCount}</div>
+                  <div class="lbl">Tersedia</div>
+                </div>
+                <div class="divider-line"></div>
+                <div class="stat-mini-box occu">
+                  <div class="val">${occuCount}</div>
+                  <div class="lbl">Terisi</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+        html += '</div>';
+        container.innerHTML = Object.keys(bedsByBangsal).length === 0 ? '<div class="empty-state">Tidak ada data</div>' : html;
+      }
+
+      function updateIgdPanel(igdBeds) {
+        const availCount = igdBeds.filter(isAvailable).length;
+        const occuCount = igdBeds.filter(isOccupied).length;
+
+        document.getElementById('igd-total-available').textContent = availCount;
+        document.getElementById('igd-total-occupied').textContent = occuCount;
+
+        const listContainer = document.getElementById('igd-list');
+        if (igdBeds.length === 0) {
+          listContainer.innerHTML = '<div class="empty-state" style="font-size:1rem;">Tidak ada data bed IGD</div>';
+          return;
+        }
+
+        let html = '';
+        igdBeds.forEach(bed => {
+          const avail = isAvailable(bed);
+          const badgeClass = avail ? 'available' : 'occupied';
+          const badgeLabel = avail ? 'Tersedia' : 'Terisi';
+
+          html += `
+            <div class="igd-item-card">
+              <div>
+                <div class="name">${bed.kd_kamar}</div>
+                <div class="code">\({bed.nm_bangsal} -\){bed.kelas || 'IGD'}</div>
+              </div>
+              <span class="igd-badge \({badgeClass}">\){badgeLabel}</span>
+            </div>
+          `;
+        });
+        listContainer.innerHTML = html;
+      }
+
+      function calculateRealtimeBOR(beds) {
+        if (!beds || beds.length === 0) {
+          document.getElementById('bor-total').textContent = '0';
+          document.getElementById('total-available').textContent = '0';
+          document.getElementById('total-occupied').textContent = '0';
+          return;
+        }
+
+        const totalAvailable = beds.filter(isAvailable).length;
+        const totalOccupied = beds.filter(isOccupied).length;
+        const totalBedOperasional = beds.length;
+
+        const borRealtime = totalBedOperasional > 0 
+          ? ((totalOccupied / totalBedOperasional) * 100).toFixed(1)
+          : 0;
+
+        document.getElementById('bor-total').textContent = borRealtime.endsWith('.0') 
+          ? Math.round(borRealtime) 
+          : borRealtime;
+        document.getElementById('total-available').textContent = totalAvailable;
+        document.getElementById('total-occupied').textContent = totalOccupied;
+      }
+
+      fetchData();
+      setInterval(fetchData, 60000); 
+    </script>
+  </body>
+</html>
