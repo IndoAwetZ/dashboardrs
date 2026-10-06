@@ -6,6 +6,7 @@
     <title>Display Ketersediaan Tempat Tidur &amp; IGD - RSUASF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
       :root {
         --dark-brown: #3e2723;
@@ -266,7 +267,7 @@
       .divider-line { width: 1px; height: 30px; background: #ddd; }
       .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; flex: 1; font-size: 1.1rem; font-weight: 900; color: #ccc; }
 
-      /* SISI KANAN (50%): PANEL KHUSUS IGD SIMETRIS 3x3 */
+      /* SISI KANAN (50%): PANEL KHUSUS IGD DENGAN GRID 3X3 */
       .igd-panel {
         background: white;
         border-radius: 12px;
@@ -339,14 +340,15 @@
       }
 
       .igd-bed-card {
-        border-radius: 10px;
+        border-radius: 12px;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 10px 12px;
+        padding: 8px 10px;
         box-shadow: 0 3px 8px rgba(0,0,0,0.03);
-        transition: transform 0.2s;
         border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
       }
 
       .igd-bed-card.available {
@@ -362,20 +364,23 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        width: 100%;
       }
-      .bed-label-title {
-        font-weight: 900;
-        font-size: 1.25rem;
-        line-height: 1;
+
+      .bed-class-sub {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #555;
+        background: rgba(0,0,0,0.05);
+        padding: 2px 7px;
+        border-radius: 5px;
       }
-      .igd-bed-card.available .bed-label-title { color: #166534; }
-      .igd-bed-card.occupied .bed-label-title { color: #991b1b; }
 
       .bed-status-pill {
-        padding: 3px 8px;
+        padding: 4px 10px;
         border-radius: 6px;
         font-weight: 900;
-        font-size: 0.72rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
@@ -388,25 +393,33 @@
         color: #fff;
       }
 
-      .bed-bottom-row {
+      /* Area Tengah: Ikon Bed & Label Nomor Bed */
+      .bed-center-content {
+        flex: 1;
         display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-top: 4px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 2px 0;
       }
-      .bed-code-sub {
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: #777;
+
+      .bed-main-icon {
+        font-size: 2.3rem;
+        line-height: 1;
+        opacity: 0.85;
       }
-      .bed-class-sub {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #555;
-        background: rgba(0,0,0,0.05);
-        padding: 1px 6px;
-        border-radius: 4px;
+      .igd-bed-card.available .bed-main-icon { color: var(--green-success); }
+      .igd-bed-card.occupied .bed-main-icon { color: var(--red-danger); }
+
+      .bed-label-title {
+        font-weight: 900;
+        font-size: 1.85rem;
+        line-height: 1.1;
+        letter-spacing: 0.5px;
       }
+      .igd-bed-card.available .bed-label-title { color: #166534; }
+      .igd-bed-card.occupied .bed-label-title { color: #991b1b; }
 
       .fade-in { animation: fadeIn 0.3s ease-in; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -726,12 +739,12 @@
 
           html += '<div class="igd-bed-card ' + cardClass + '">' +
                     '<div class="bed-top-row">' +
-                      '<div class="bed-label-title">' + displayName + '</div>' +
+                      '<span class="bed-class-sub">' + kelasLabel + '</span>' +
                       '<span class="bed-status-pill">' + badgeLabel + '</span>' +
                     '</div>' +
-                    '<div class="bed-bottom-row">' +
-                      '<span class="bed-code-sub">' + bed.kd_kamar + '</span>' +
-                      '<span class="bed-class-sub">' + kelasLabel + '</span>' +
+                    '<div class="bed-center-content">' +
+                      '<i class="fa-solid fa-bed bed-main-icon"></i>' +
+                      '<div class="bed-label-title">' + displayName + '</div>' +
                     '</div>' +
                   '</div>';
         });
