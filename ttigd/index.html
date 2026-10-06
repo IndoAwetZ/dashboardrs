@@ -71,7 +71,7 @@
         line-height: 1; 
       }
 
-      /* Layout Split 50:50 */
+      /* Main Page Grid (50:50) */
       .page-wrapper {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -82,8 +82,10 @@
         min-height: 0;
       }
 
-      /* SISI KIRI (50%): RAWAT INAP REGULER */
-      .main-container { 
+      /* =========================================================
+         SISI KIRI: MODUL RAWAT INAP REGULER (ranap-*)
+         ========================================================= */
+      .ranap-section { 
         display: grid;
         grid-template-columns: 175px 1fr;
         gap: 10px;
@@ -91,13 +93,13 @@
         min-height: 0;
       }
 
-      .sidebar-panel {
+      .ranap-sidebar {
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
 
-      .bor-card {
+      .ranap-bor-card {
         background: var(--dark-brown);
         color: white;
         border-radius: 12px;
@@ -106,16 +108,16 @@
         border-bottom: 5px solid var(--gold);
         box-shadow: 0 4px 10px rgba(62, 39, 35, 0.08);
       }
-      .bor-value {
+      .ranap-bor-card .bor-val {
         font-size: 2.3rem;
         font-weight: 900;
         color: var(--gold);
         line-height: 1;
         margin: 3px 0;
       }
-      .bor-label { font-size: 0.72rem; font-weight: 700; color: #ccc; letter-spacing: 0.5px; }
+      .ranap-bor-card .bor-lbl { font-size: 0.72rem; font-weight: 700; color: #ccc; letter-spacing: 0.5px; }
 
-      .summary-indicator-card {
+      .ranap-summary-card {
         background: white;
         border-radius: 12px;
         padding: 10px 8px;
@@ -126,7 +128,7 @@
         flex: 1;
       }
 
-      .indicator-item {
+      .ranap-indicator {
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -139,16 +141,15 @@
         flex: 1;
         gap: 4px;
       }
-      .indicator-item.available { background: rgba(46, 125, 50, 0.08); color: var(--green-success); }
-      .indicator-item.occupied { background: rgba(198, 40, 40, 0.08); color: var(--red-danger); }
-      
-      .indicator-val { 
+      .ranap-indicator.avail { background: rgba(46, 125, 50, 0.08); color: var(--green-success); }
+      .ranap-indicator.occu { background: rgba(198, 40, 40, 0.08); color: var(--red-danger); }
+      .ranap-indicator .indicator-val { 
         font-size: 2.2rem; 
         line-height: 1;
         font-weight: 900;
       }
 
-      .content-panel {
+      .ranap-display-panel {
         background: white;
         border-radius: 12px;
         box-shadow: 0 5px 15px rgba(62, 39, 35, 0.05);
@@ -159,14 +160,14 @@
         min-height: 0;
       }
 
-      .tabs-header {
+      .ranap-tab-bar {
         background: var(--dark-brown);
         display: flex;
         flex-wrap: wrap;
         border-bottom: 3px solid var(--gold);
       }
 
-      .tab-btn {
+      .ranap-tab-item {
         flex: 1;
         min-width: 65px;
         padding: 8px 3px;
@@ -184,14 +185,14 @@
         align-items: center;
         justify-content: center;
       }
-      .tab-btn span { font-size: 0.65rem; font-weight: 400; opacity: 0.8; }
-      .tab-btn.active {
+      .ranap-tab-item span { font-size: 0.65rem; font-weight: 400; opacity: 0.8; }
+      .ranap-tab-item.active {
         background: var(--gold);
         color: var(--dark-brown);
       }
-      .tab-btn.active span { color: var(--dark-brown); font-weight: 700; }
+      .ranap-tab-item.active span { color: var(--dark-brown); font-weight: 700; }
 
-      .tab-content-wrapper {
+      .ranap-tab-content {
         flex: 1;
         padding: 10px;
         overflow-y: auto;
@@ -200,17 +201,17 @@
         flex-direction: column;
       }
 
-      .tab-pane {
+      .ranap-view-pane {
         display: none;
         flex: 1;
         min-height: 0;
       }
-      .tab-pane.active {
+      .ranap-view-pane.active {
         display: flex;
         flex-direction: column;
       }
 
-      .bangsal-grid {
+      .ranap-grid-layout {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 8px;
@@ -218,7 +219,7 @@
         align-content: stretch;
       }
 
-      .bangsal-card {
+      .ranap-bangsal-card {
         background: #faf7f2;
         border-radius: 10px;
         border-left: 5px solid var(--gold);
@@ -229,7 +230,7 @@
         justify-content: space-between;
       }
 
-      .bangsal-header {
+      .ranap-bangsal-header {
         background: #f1ebd9;
         padding: 6px 10px;
         font-weight: 900;
@@ -240,7 +241,7 @@
         align-items: center;
         flex-shrink: 0;
       }
-      .bangsal-class {
+      .ranap-class-badge {
         font-size: 0.68rem;
         background: var(--dark-brown);
         color: var(--gold);
@@ -248,7 +249,7 @@
         border-radius: 4px;
       }
 
-      .bangsal-body {
+      .ranap-bangsal-body {
         padding: 8px;
         display: flex;
         justify-content: space-around;
@@ -256,18 +257,20 @@
         flex: 1;
       }
 
-      .stat-mini-box { text-align: center; flex: 1; }
-      .stat-mini-box .val { font-size: 1.6rem; font-weight: 900; line-height: 1; }
-      .stat-mini-box .lbl { font-size: 0.7rem; font-weight: 700; color: #777; margin-top: 3px; text-transform: uppercase; }
+      .ranap-stat-unit { text-align: center; flex: 1; }
+      .ranap-stat-unit .val { font-size: 1.6rem; font-weight: 900; line-height: 1; }
+      .ranap-stat-unit .lbl { font-size: 0.7rem; font-weight: 700; color: #777; margin-top: 3px; text-transform: uppercase; }
       
-      .stat-mini-box.total .val { color: var(--dark-brown); }
-      .stat-mini-box.avail .val { color: var(--green-success); }
-      .stat-mini-box.occu .val { color: var(--red-danger); }
+      .ranap-stat-unit.total .val { color: var(--dark-brown); }
+      .ranap-stat-unit.avail .val { color: var(--green-success); }
+      .ranap-stat-unit.occu .val { color: var(--red-danger); }
 
       .divider-line { width: 1px; height: 30px; background: #ddd; }
       .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; flex: 1; font-size: 1.1rem; font-weight: 900; color: #ccc; }
 
-      /* SISI KANAN (50%): PANEL KHUSUS IGD DENGAN HEADER JUMBO */
+      /* =========================================================
+         SISI KANAN: MODUL IGD (igd-*)
+         ========================================================= */
       .igd-panel {
         background: white;
         border-radius: 12px;
@@ -279,7 +282,6 @@
         min-height: 0;
       }
 
-      /* Header IGD Baru: Aksen Merah Medis, Lebih Luas & Sangat Kontras */
       .igd-top-bar {
         background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
         padding: 12px 18px;
@@ -310,7 +312,6 @@
         margin-top: 3px;
       }
       
-      /* Badges Counter IGD: Jumbo, Tegas, & Jelas Terbaca */
       .igd-counter-badges {
         display: flex;
         gap: 12px;
@@ -341,7 +342,6 @@
         font-weight: 900;
       }
 
-      /* Grid Presisi 3 Kolom x 3 Baris Menghabiskan Area */
       .igd-grid-wrapper {
         flex: 1;
         padding: 10px;
@@ -363,7 +363,6 @@
         position: relative;
         overflow: hidden;
       }
-
       .igd-bed-card.available {
         background: #f0fdf4;
         border-color: #bbf7d0;
@@ -379,7 +378,6 @@
         align-items: center;
         width: 100%;
       }
-
       .bed-class-sub {
         font-size: 0.75rem;
         font-weight: 700;
@@ -388,7 +386,6 @@
         padding: 2px 7px;
         border-radius: 5px;
       }
-
       .bed-status-pill {
         padding: 4px 10px;
         border-radius: 6px;
@@ -406,7 +403,6 @@
         color: #fff;
       }
 
-      /* Area Tengah: Ikon Bed & Label Nomor Bed */
       .bed-center-content {
         flex: 1;
         display: flex;
@@ -416,7 +412,6 @@
         gap: 4px;
         padding: 2px 0;
       }
-
       .bed-main-icon {
         font-size: 2.3rem;
         line-height: 1;
@@ -461,64 +456,68 @@
     </div>
 
     <div class="page-wrapper">
-      <!-- SISI KIRI (50%): RAWAT INAP REGULER -->
-      <div class="main-container">
-        <div class="sidebar-panel">
-          <div class="bor-card">
-            <div class="bor-label">BOR REALTIME RANAP</div>
-            <div class="bor-value"><span id="bor-total">0</span>%</div>
-            <div class="bor-label">EXCL. IGD &amp; VK</div>
+      <!-- =========================================================
+           SISI KIRI (50%): AREA RAWAT INAP REGULER
+           ========================================================= -->
+      <div class="ranap-section">
+        <div class="ranap-sidebar">
+          <div class="ranap-bor-card">
+            <div class="bor-lbl">BOR REALTIME RANAP</div>
+            <div class="bor-val"><span id="bor-total">0</span>%</div>
+            <div class="bor-lbl">EXCL. IGD &amp; VK</div>
           </div>
 
-          <div class="summary-indicator-card">
-            <div class="indicator-item available">
+          <div class="ranap-summary-card">
+            <div class="ranap-indicator avail">
               <div>BED RANAP TERSEDIA</div>
               <div class="indicator-val" id="total-available">0</div>
             </div>
-            <div class="indicator-item occupied">
+            <div class="ranap-indicator occu">
               <div>BED RANAP TERISI</div>
               <div class="indicator-val" id="total-occupied">0</div>
             </div>
           </div>
         </div>
 
-        <div class="content-panel">
-          <div class="tabs-header">
-            <button class="tab-btn active" id="tab-irna1" onclick="switchTab('irna1')">
+        <div class="ranap-display-panel">
+          <div class="ranap-tab-bar">
+            <button class="ranap-tab-item active" id="tab-irna1" onclick="switchTab('irna1')">
               IRNA 1
               <span>Tersedia: <strong id="irna1-available-icon">0</strong></span>
             </button>
-            <button class="tab-btn" id="tab-irna2" onclick="switchTab('irna2')">
+            <button class="ranap-tab-item" id="tab-irna2" onclick="switchTab('irna2')">
               IRNA 2
               <span>Tersedia: <strong id="irna2-available-icon">0</strong></span>
             </button>
-            <button class="tab-btn" id="tab-icu" onclick="switchTab('icu')">
+            <button class="ranap-tab-item" id="tab-icu" onclick="switchTab('icu')">
               ICU / INTENSIF
               <span>Tersedia: <strong id="icu-available-icon">0</strong></span>
             </button>
-            <button class="tab-btn" id="tab-bersalin" onclick="switchTab('bersalin')">
+            <button class="ranap-tab-item" id="tab-bersalin" onclick="switchTab('bersalin')">
               KEBIDANAN
               <span>Tersedia: <strong id="bersalin-available-icon">0</strong></span>
             </button>
-            <button class="tab-btn" id="tab-bayi" onclick="switchTab('bayi')">
+            <button class="ranap-tab-item" id="tab-bayi" onclick="switchTab('bayi')">
               PERINATOLOGI
               <span>Tersedia: <strong id="bayi-available-icon">0</strong></span>
             </button>
           </div>
 
-          <div class="tab-content-wrapper">
-            <div id="irna1-container" class="tab-pane active fade-in">
+          <div class="ranap-tab-content">
+            <div id="irna1-container" class="ranap-view-pane active fade-in">
               <div class="text-center p-4 text-muted">Memuat data...</div>
             </div>
-            <div id="irna2-container" class="tab-pane fade-in"></div>
-            <div id="icu-container" class="tab-pane fade-in"></div>
-            <div id="bersalin-container" class="tab-pane fade-in"></div>
-            <div id="bayi-container" class="tab-pane fade-in"></div>
+            <div id="irna2-container" class="ranap-view-pane fade-in"></div>
+            <div id="icu-container" class="ranap-view-pane fade-in"></div>
+            <div id="bersalin-container" class="ranap-view-pane fade-in"></div>
+            <div id="bayi-container" class="ranap-view-pane fade-in"></div>
           </div>
         </div>
       </div>
 
-      <!-- SISI KANAN (50%): PANEL KHUSUS IGD DENGAN GRID 3X3 -->
+      <!-- =========================================================
+           SISI KANAN (50%): AREA INSTALASI GAWAT DARURAT (IGD)
+           ========================================================= -->
       <div class="igd-panel">
         <div class="igd-top-bar">
           <div class="igd-title-wrap">
@@ -555,7 +554,6 @@
       const sectionKeys = ['irna1', 'irna2', 'icu', 'bersalin', 'bayi'];
       let activeTabIndex = 0;
 
-      // Status helper
       const isAvailable = (bed) => bed.status === 'KOSONG' || bed.status === 'DIBOOKING';
       const isOccupied = (bed) => bed.status === 'ISI';
 
@@ -681,30 +679,30 @@
           bedsByBangsal[bed.nm_bangsal].push(bed);
         });
                     
-        let html = '<div class="bangsal-grid">';
+        let html = '<div class="ranap-grid-layout">';
         for (const bangsal in bedsByBangsal) {
           const availCount = bedsByBangsal[bangsal].filter(isAvailable).length;
           const occuCount = bedsByBangsal[bangsal].filter(isOccupied).length;
           const currentClass = bedsByBangsal[bangsal][0]?.kelas || 'Kelas 3';
                               
           html += `
-            <div class="bangsal-card">
-              <div class="bangsal-header">
+            <div class="ranap-bangsal-card">
+              <div class="ranap-bangsal-header">
                 <div>${bangsal}</div>
-                <div class="bangsal-class">${currentClass}</div>
+                <div class="ranap-class-badge">${currentClass}</div>
               </div>
-              <div class="bangsal-body">
-                <div class="stat-mini-box total">
+              <div class="ranap-bangsal-body">
+                <div class="ranap-stat-unit total">
                   <div class="val">${bedsByBangsal[bangsal].length}</div>
                   <div class="lbl">Total</div>
                 </div>
                 <div class="divider-line"></div>
-                <div class="stat-mini-box avail">
+                <div class="ranap-stat-unit avail">
                   <div class="val">${availCount}</div>
                   <div class="lbl">Tersedia</div>
                 </div>
                 <div class="divider-line"></div>
-                <div class="stat-mini-box occu">
+                <div class="ranap-stat-unit occu">
                   <div class="val">${occuCount}</div>
                   <div class="lbl">Terisi</div>
                 </div>
