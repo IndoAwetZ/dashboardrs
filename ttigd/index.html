@@ -160,22 +160,27 @@
         min-height: 0;
       }
 
+      /* ranap-tab-bar disamakan presisi tingginya (height: 68px) dengan igd-top-bar */
       .ranap-tab-bar {
         background: var(--dark-brown);
         display: flex;
-        flex-wrap: wrap;
+        align-items: stretch;
         border-bottom: 3px solid var(--gold);
+        height: 68px;
+        flex-shrink: 0;
       }
 
+      /* Font size & padding ranap-tab-item disamakan proporsinya */
       .ranap-tab-item {
         flex: 1;
-        min-width: 65px;
-        padding: 8px 3px;
+        min-width: 0;
+        padding: 6px 4px;
         background: transparent;
         border: none;
         color: white;
         font-weight: 900;
-        font-size: 0.72rem;
+        font-size: 1.15rem;
+        letter-spacing: 0.5px;
         text-transform: uppercase;
         cursor: pointer;
         transition: all 0.3s;
@@ -184,13 +189,20 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        line-height: 1.1;
       }
-      .ranap-tab-item span { font-size: 0.65rem; font-weight: 400; opacity: 0.8; }
+      .ranap-tab-item span { 
+        font-size: 0.75rem; 
+        font-weight: 700; 
+        opacity: 0.9; 
+        margin-top: 3px;
+        letter-spacing: 0.3px;
+      }
       .ranap-tab-item.active {
         background: var(--gold);
         color: var(--dark-brown);
       }
-      .ranap-tab-item.active span { color: var(--dark-brown); font-weight: 700; }
+      .ranap-tab-item.active span { color: var(--dark-brown); font-weight: 900; }
 
       .ranap-tab-content {
         flex: 1;
@@ -282,13 +294,15 @@
         min-height: 0;
       }
 
+      /* igd-top-bar dikunci tingginya (height: 68px) sejajar ranap-tab-bar */
       .igd-top-bar {
         background: linear-gradient(135deg, #b71c1c 0%, #880e4f 100%);
-        padding: 12px 18px;
+        padding: 0 18px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         border-bottom: 3px solid #ff5252;
+        height: 68px;
         flex-shrink: 0;
         box-shadow: 0 3px 8px rgba(0,0,0,0.12);
       }
@@ -317,7 +331,7 @@
         gap: 12px;
       }
       .counter-badge {
-        padding: 6px 14px;
+        padding: 5px 14px;
         border-radius: 10px;
         font-weight: 900;
         font-size: 0.85rem;
@@ -681,8 +695,9 @@
                     
         let html = '<div class="ranap-grid-layout">';
         for (const bangsal in bedsByBangsal) {
-          const availCount = bedsByBangsal[bangsal].filter(isAvailable).length;
+          const availCount = bedsByBangsal[availCountKey => isAvailable(availCountKey)].length;
           const occuCount = bedsByBangsal[bangsal].filter(isOccupied).length;
+          const validAvailCount = bedsByBangsal[bangsal].filter(isAvailable).length;
           const currentClass = bedsByBangsal[bangsal][0]?.kelas || 'Kelas 3';
                               
           html += `
@@ -698,7 +713,7 @@
                 </div>
                 <div class="divider-line"></div>
                 <div class="ranap-stat-unit avail">
-                  <div class="val">${availCount}</div>
+                  <div class="val">${validAvailCount}</div>
                   <div class="lbl">Tersedia</div>
                 </div>
                 <div class="divider-line"></div>
