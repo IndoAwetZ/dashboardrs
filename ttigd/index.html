@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Display Ketersediaan Tempat Tidur &amp; IGD - RSUASF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
       :root {
@@ -29,7 +29,6 @@
         flex-direction: column;
       }
 
-      /* Header Layout */
       .header {
         background: var(--dark-brown);
         color: var(--gold);
@@ -71,7 +70,6 @@
         line-height: 1; 
       }
 
-      /* Main Page Grid (50:50) */
       .page-wrapper {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -82,9 +80,6 @@
         min-height: 0;
       }
 
-      /* =========================================================
-         SISI KIRI: MODUL RAWAT INAP REGULER (ranap-*)
-         ========================================================= */
       .ranap-section { 
         display: grid;
         grid-template-columns: 175px 1fr;
@@ -278,9 +273,6 @@
       .divider-line { width: 1px; height: 30px; background: #ddd; }
       .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; flex: 1; font-size: 1.1rem; font-weight: 900; color: #ccc; }
 
-      /* =========================================================
-         SISI KANAN: MODUL IGD (igd-*)
-         ========================================================= */
       .igd-panel {
         background: white;
         border-radius: 12px;
@@ -467,9 +459,7 @@
     </div>
 
     <div class="page-wrapper">
-      <!-- =========================================================
-           SISI KIRI (50%): AREA RAWAT INAP REGULER
-           ========================================================= -->
+      <!-- SISI KIRI (50%): RAWAT INAP REGULER -->
       <div class="ranap-section">
         <div class="ranap-sidebar">
           <div class="ranap-bor-card">
@@ -526,9 +516,7 @@
         </div>
       </div>
 
-      <!-- =========================================================
-           SISI KANAN (50%): AREA INSTALASI GAWAT DARURAT (IGD)
-           ========================================================= -->
+      <!-- SISI KANAN (50%): AREA INSTALASI GAWAT DARURAT (IGD) -->
       <div class="igd-panel">
         <div class="igd-top-bar">
           <div class="igd-title-wrap">
@@ -565,8 +553,19 @@
       const sectionKeys = ['irna1', 'irna2', 'icu', 'bersalin', 'bayi'];
       let activeTabIndex = 0;
 
-      const isAvailable = (bed) => bed.status === 'KOSONG' || bed.status === 'DIBOOKING';
-      const isOccupied = (bed) => bed.status === 'ISI';
+      // Status helper untuk rawat inap reguler (menggunakan status_hunian)
+      const isAvailableRanap = (bed) => {
+        const sh = (bed.status_hunian || bed.status || '').toUpperCase().trim();
+        return sh === 'KOSONG' || sh === 'DIBOOKING';
+      };
+      const isOccupiedRanap = (bed) => {
+        const sh = (bed.status_hunian || bed.status || '').toUpperCase().trim();
+        return sh === 'TERISI' || sh === 'ISI';
+      };
+
+      // Status helper untuk IGD (menggunakan status)
+      const isAvailableIgd = (bed) => (bed.status || '').toUpperCase().trim() === 'KOSONG' || (bed.status || '').toUpperCase().trim() === 'DIBOOKING';
+      const isOccupiedIgd = (bed) => (bed.status || '').toUpperCase().trim() === 'ISI';
 
       function isIgdUnit(bed) {
         const bangsalName = (bed.nm_bangsal || '').toUpperCase().trim();
@@ -582,11 +581,11 @@
 
       function switchTab(sectionId) {
         sectionKeys.forEach(key => {
-          document.getElementById(`tab-${key}`).classList.remove('active');
-          document.getElementById(`${key}-container`).classList.remove('active');
+          document.getElementById('tab-' + key).classList.remove('active');
+          document.getElementById(key + '-container').classList.remove('active');
         });
-        document.getElementById(`tab-${sectionId}`).classList.add('active');
-        document.getElementById(`${sectionId}-container`).classList.add('active');
+        document.getElementById('tab-' + sectionId).classList.add('active');
+        document.getElementById(sectionId + '-container').classList.add('active');
         activeTabIndex = sectionKeys.indexOf(sectionId);
       }
 
@@ -606,54 +605,73 @@
 
       async function fetchData() {
         try {
-          const apiUrl = 'https://project.rsaisyiyahsitifatimah.com/api/ketersediaan-tt';
-          const res = await fetch(apiUrl).then(r => r.json()).catch(() => null);
+          const urlIgd = 'https://project.rsaisyiyahsitifatimah.com/api/ketersediaan-tt';
+          const urlRanap = 'https://api.rsasitifatimah.com/api/ketersediaan-tt-detail';
 
-          let rawBeds = res;
-          if (!rawBeds || rawBeds.length === 0) {
-            console.warn('API kosong atau gagal, memuat simulasi data...');
-            rawBeds = generateSampleData();
+          const [resIgd, resRanap] = await Promise.all([
+            fetch(urlIgd).then(r => r.json()).catch(() => null),
+            fetch(urlRanap).then(r => r.json()).catch(() => null)
+          ]);
+
+          // 1. DATA IGD (dari project.rsaisyiyahsitifatimah.com/api/ketersediaan-tt)
+          let rawIgd = resIgd;
+          if (!rawIgd || rawIgd.length === 0) {
+            console.warn('API IGD kosong/gagal, memuat fallback IGD...');
+            rawIgd = generateSampleIgd();
           }
-
-          const igdBeds = rawBeds.filter(bed => isIgdUnit(bed));
+          const igdBeds = rawIgd.filter(bed => isIgdUnit(bed));
           updateIgdPanel(igdBeds);
 
-          const regularBeds = rawBeds.filter(bed => !isIgdUnit(bed) && !isVkUnit(bed));
+          // 2. DATA RANAP REGULER (dari api.rsasitifatimah.com/api/ketersediaan-tt-detail)
+          let rawRanap = [];
+          if (Array.isArray(resRanap)) {
+            rawRanap = resRanap;
+          } else if (resRanap && Array.isArray(resRanap.data)) {
+            rawRanap = resRanap.data;
+          }
+
+          if (!rawRanap || rawRanap.length === 0) {
+            console.warn('API Ranap Detail kosong/gagal, memuat fallback Ranap...');
+            rawRanap = generateSampleRanap();
+          }
+
+          const regularBeds = rawRanap.filter(bed => !isIgdUnit(bed) && !isVkUnit(bed));
           updateDashboard(regularBeds);
           calculateRealtimeBOR(regularBeds);
 
         } catch (error) {
-          console.error('Gagal mengambil data ketersediaan TT:', error);
+          console.error('Gagal mengambil data:', error);
         }
       }
 
-      function generateSampleData() {
+      function generateSampleIgd() {
+        const sampleIgdCodes = ['K0000175','K0000176','K0000177','K0000178','K0000179','K0000182','K0000183','K0000184','K0000185'];
+        return sampleIgdCodes.map((code, idx) => ({
+          kd_kamar: code,
+          nm_bangsal: 'IGD Rawat Inap',
+          kelas: 'Kelas 3',
+          status: idx === 2 ? 'ISI' : 'KOSONG'
+        }));
+      }
+
+      function generateSampleRanap() {
         const bangsals = [...nursingStations.irna1, ...nursingStations.irna2, ...nursingStations.icu, ...nursingStations.bersalin, ...nursingStations.bayi];
         const data = [];
-        const statuses = ['KOSONG', 'ISI', 'DIBOOKING']; 
+        const hunianList = ['Kosong', 'Terisi', 'Dibooking']; 
         const kelas = ['Kelas 1', 'Kelas 2', 'Kelas 3', 'VIP'];
 
         bangsals.forEach(bangsal => {
           for (let i = 1; i <= 4; i++) {
+            const h = hunianList[Math.floor(Math.random() * hunianList.length)];
             data.push({
-              kd_kamar: `\({bangsal.substring(0, 3)}\){i}`,
+              kd_kamar: bangsal.substring(0, 3) + i,
               nm_bangsal: bangsal,
               kelas: kelas[Math.floor(Math.random() * kelas.length)],
-              status: statuses[Math.floor(Math.random() * statuses.length)]
+              status: h === 'Terisi' ? 'ISI' : 'KOSONG',
+              status_hunian: h
             });
           }
         });
-
-        const sampleIgdCodes = ['K0000175','K0000176','K0000177','K0000178','K0000179','K0000182','K0000183','K0000184','K0000185'];
-        sampleIgdCodes.forEach((code, idx) => {
-          data.push({
-            kd_kamar: code,
-            nm_bangsal: 'IGD Rawat Inap',
-            kelas: 'Kelas 3',
-            status: idx === 2 ? 'ISI' : 'KOSONG'
-          });
-        });
-
         return data;
       }
 
@@ -675,15 +693,15 @@
         updateSection('bersalin', groupedData.bersalin);
         updateSection('bayi', groupedData.bayi);
 
-        document.getElementById('irna1-available-icon').textContent = groupedData.irna1.filter(isAvailable).length;
-        document.getElementById('irna2-available-icon').textContent = groupedData.irna2.filter(isAvailable).length;
-        document.getElementById('icu-available-icon').textContent = groupedData.icu.filter(isAvailable).length;
-        document.getElementById('bersalin-available-icon').textContent = groupedData.bersalin.filter(isAvailable).length;
-        document.getElementById('bayi-available-icon').textContent = groupedData.bayi.filter(isAvailable).length;
+        document.getElementById('irna1-available-icon').textContent = groupedData.irna1.filter(isAvailableRanap).length;
+        document.getElementById('irna2-available-icon').textContent = groupedData.irna2.filter(isAvailableRanap).length;
+        document.getElementById('icu-available-icon').textContent = groupedData.icu.filter(isAvailableRanap).length;
+        document.getElementById('bersalin-available-icon').textContent = groupedData.bersalin.filter(isAvailableRanap).length;
+        document.getElementById('bayi-available-icon').textContent = groupedData.bayi.filter(isAvailableRanap).length;
       }
 
       function updateSection(sectionId, beds) {
-        const container = document.getElementById(`${sectionId}-container`);
+        const container = document.getElementById(sectionId + '-container');
         const bedsByBangsal = {};
         beds.forEach(bed => {
           if (!bedsByBangsal[bed.nm_bangsal]) bedsByBangsal[bed.nm_bangsal] = [];
@@ -692,34 +710,32 @@
                     
         let html = '<div class="ranap-grid-layout">';
         for (const bangsal in bedsByBangsal) {
-          const availCount = bedsByBangsal[bangsal].filter(isAvailable).length;
-          const occuCount = bedsByBangsal[bangsal].filter(isOccupied).length;
+          const availCount = bedsByBangsal[bangsal].filter(isAvailableRanap).length;
+          const occuCount = bedsByBangsal[bangsal].filter(isOccupiedRanap).length;
           const currentClass = bedsByBangsal[bangsal][0]?.kelas || 'Kelas 3';
                               
-          html += `
-            <div class="ranap-bangsal-card">
-              <div class="ranap-bangsal-header">
-                <div>${bangsal}</div>
-                <div class="ranap-class-badge">${currentClass}</div>
-              </div>
-              <div class="ranap-bangsal-body">
-                <div class="ranap-stat-unit total">
-                  <div class="val">${bedsByBangsal[bangsal].length}</div>
-                  <div class="lbl">Total</div>
-                </div>
-                <div class="divider-line"></div>
-                <div class="ranap-stat-unit avail">
-                  <div class="val">${availCount}</div>
-                  <div class="lbl">Tersedia</div>
-                </div>
-                <div class="divider-line"></div>
-                <div class="ranap-stat-unit occu">
-                  <div class="val">${occuCount}</div>
-                  <div class="lbl">Terisi</div>
-                </div>
-              </div>
-            </div>
-          `;
+          html += '<div class="ranap-bangsal-card">' +
+                    '<div class="ranap-bangsal-header">' +
+                      '<div>' + bangsal + '</div>' +
+                      '<div class="ranap-class-badge">' + currentClass + '</div>' +
+                    '</div>' +
+                    '<div class="ranap-bangsal-body">' +
+                      '<div class="ranap-stat-unit total">' +
+                        '<div class="val">' + bedsByBangsal[bangsal].length + '</div>' +
+                        '<div class="lbl">Total</div>' +
+                      '</div>' +
+                      '<div class="divider-line"></div>' +
+                      '<div class="ranap-stat-unit avail">' +
+                        '<div class="val">' + availCount + '</div>' +
+                        '<div class="lbl">Tersedia</div>' +
+                      '</div>' +
+                      '<div class="divider-line"></div>' +
+                      '<div class="ranap-stat-unit occu">' +
+                        '<div class="val">' + occuCount + '</div>' +
+                        '<div class="lbl">Terisi</div>' +
+                      '</div>' +
+                    '</div>' +
+                  '</div>';
         }
         html += '</div>';
         container.innerHTML = Object.keys(bedsByBangsal).length === 0 ? '<div class="empty-state">Tidak ada data</div>' : html;
@@ -740,8 +756,8 @@
           'K0000185': 'Bed 9'
         };
 
-        const availCount = igdBeds.filter(isAvailable).length;
-        const occuCount = igdBeds.filter(isOccupied).length;
+        const availCount = igdBeds.filter(isAvailableIgd).length;
+        const occuCount = igdBeds.filter(isOccupiedIgd).length;
 
         document.getElementById('igd-total-available').textContent = availCount;
         document.getElementById('igd-total-occupied').textContent = occuCount;
@@ -754,7 +770,7 @@
 
         let html = '';
         igdBeds.forEach((bed, index) => {
-          const avail = isAvailable(bed);
+          const avail = isAvailableIgd(bed);
           const cardClass = avail ? 'available' : 'occupied';
           const badgeLabel = avail ? 'Tersedia' : 'Terisi';
           
@@ -783,8 +799,8 @@
           return;
         }
 
-        const totalAvailable = beds.filter(isAvailable).length;
-        const totalOccupied = beds.filter(isOccupied).length;
+        const totalAvailable = beds.filter(isAvailableRanap).length;
+        const totalOccupied = beds.filter(isOccupiedRanap).length;
         const totalBedOperasional = beds.length;
 
         const borRealtime = totalBedOperasional > 0 
