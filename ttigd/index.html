@@ -625,7 +625,7 @@
         container.innerHTML = Object.keys(bedsByBangsal).length === 0 ? '<div class="empty-state">Tidak ada data</div>' : html;
       }
 
-      function updateIgdPanel(igdBeds) {
+            function updateIgdPanel(igdBeds) {
         const availCount = igdBeds.filter(isAvailable).length;
         const occuCount = igdBeds.filter(isOccupied).length;
 
@@ -643,19 +643,19 @@
           const avail = isAvailable(bed);
           const badgeClass = avail ? 'available' : 'occupied';
           const badgeLabel = avail ? 'Tersedia' : 'Terisi';
+          const kelasLabel = bed.kelas || 'IGD';
 
-          html += `
-            <div class="igd-item-card">
-              <div>
-                <div class="name">${bed.kd_kamar}</div>
-                <div class="code">\({bed.nm_bangsal} -\){bed.kelas || 'IGD'}</div>
-              </div>
-              <span class="igd-badge \({badgeClass}">\){badgeLabel}</span>
-            </div>
-          `;
+          html += '<div class="igd-item-card">' +
+                    '<div>' +
+                      '<div class="name">' + bed.kd_kamar + '</div>' +
+                      '<div class="code">' + bed.nm_bangsal + ' - ' + kelasLabel + '</div>' +
+                    '</div>' +
+                    '<span class="igd-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+                  '</div>';
         });
         listContainer.innerHTML = html;
       }
+
 
       function calculateRealtimeBOR(beds) {
         if (!beds || beds.length === 0) {
