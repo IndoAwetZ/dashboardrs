@@ -38,33 +38,33 @@
         justify-content: space-between;
         align-items: center;
         flex-shrink: 0;
-        height: 100px;
+        height: 96px;
       }
 
       .brand-section h1 { 
         font-weight: 900; 
-        font-size: 2.1rem; 
+        font-size: 2rem; 
         margin: 0; 
         letter-spacing: 1px; 
         line-height: 1.1;
       }
       .brand-section .sub-title { 
-        font-size: 1.2rem; 
+        font-size: 1.15rem; 
         color: #fff; 
         opacity: 0.9; 
         font-weight: 700;
-        margin-top: 3px;
+        margin-top: 2px;
       }
       
       #current-date { 
-        font-size: 1rem; 
+        font-size: 0.95rem; 
         font-weight: 700; 
         color: var(--gold); 
         text-transform: uppercase; 
         letter-spacing: 0.5px;
       }
       #current-time { 
-        font-size: 2.7rem; 
+        font-size: 2.6rem; 
         font-weight: 900; 
         color: var(--gold); 
         line-height: 1; 
@@ -73,7 +73,9 @@
       /* Layout Split 50:50 */
       .page-wrapper {
         display: grid;
-        grid-template-columns: 50% 50%;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding: 12px;
         flex: 1;
         overflow: hidden;
         min-height: 0;
@@ -81,13 +83,11 @@
 
       /* SISI KIRI (50%): RAWAT INAP REGULER */
       .main-container { 
-        padding: 10px;
         display: grid;
-        grid-template-columns: 190px 1fr;
+        grid-template-columns: 175px 1fr;
         gap: 10px;
         overflow: hidden;
         min-height: 0;
-        border-right: 4px solid var(--gold);
       }
 
       .sidebar-panel {
@@ -103,22 +103,22 @@
         padding: 12px 8px;
         text-align: center;
         border-bottom: 5px solid var(--gold);
-        box-shadow: 0 4px 12px rgba(62, 39, 35, 0.1);
+        box-shadow: 0 4px 10px rgba(62, 39, 35, 0.08);
       }
       .bor-value {
-        font-size: 2.4rem;
+        font-size: 2.3rem;
         font-weight: 900;
         color: var(--gold);
         line-height: 1;
-        margin: 4px 0;
+        margin: 3px 0;
       }
       .bor-label { font-size: 0.72rem; font-weight: 700; color: #ccc; letter-spacing: 0.5px; }
 
       .summary-indicator-card {
         background: white;
         border-radius: 12px;
-        padding: 10px;
-        box-shadow: 0 4px 12px rgba(62, 39, 35, 0.05);
+        padding: 10px 8px;
+        box-shadow: 0 4px 10px rgba(62, 39, 35, 0.04);
         display: flex;
         flex-direction: column;
         gap: 8px;
@@ -131,7 +131,7 @@
         justify-content: center;
         align-items: center;
         text-align: center;
-        padding: 8px 6px;
+        padding: 8px 4px;
         border-radius: 10px;
         font-weight: 900;
         font-size: 0.75rem;
@@ -150,11 +150,11 @@
       .content-panel {
         background: white;
         border-radius: 12px;
-        box-shadow: 0 6px 16px rgba(62, 39, 35, 0.06);
+        box-shadow: 0 5px 15px rgba(62, 39, 35, 0.05);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        border-top: 6px solid var(--gold);
+        border-top: 5px solid var(--gold);
         min-height: 0;
       }
 
@@ -266,79 +266,147 @@
       .divider-line { width: 1px; height: 30px; background: #ddd; }
       .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; flex: 1; font-size: 1.1rem; font-weight: 900; color: #ccc; }
 
-      /* SISI KANAN (50%): PANEL KHUSUS IGD PENUH TANPA WHITE SPACE */
+      /* SISI KANAN (50%): PANEL KHUSUS IGD SIMETRIS 3x3 */
       .igd-panel {
-        background: #fff;
-        padding: 10px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(62, 39, 35, 0.05);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        border-top: 6px solid var(--red-danger);
-      }
-
-      .igd-header {
-        background: var(--red-danger);
-        color: white;
-        border-radius: 10px;
-        padding: 10px;
-        text-align: center;
-        font-weight: 900;
-        margin-bottom: 8px;
-        box-shadow: 0 4px 10px rgba(198, 40, 40, 0.2);
-        flex-shrink: 0;
-      }
-      .igd-header .title { font-size: 1.2rem; letter-spacing: 0.5px; }
-      .igd-header .sub { font-size: 0.72rem; opacity: 0.9; font-weight: 400; text-transform: uppercase; margin-top: 2px; }
-
-      .igd-summary-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 8px;
-        flex-shrink: 0;
-      }
-      .igd-mini-stat {
-        border-radius: 10px;
-        padding: 8px;
-        text-align: center;
-      }
-      .igd-mini-stat.avail { background: rgba(46, 125, 50, 0.1); color: var(--green-success); }
-      .igd-mini-stat.occu { background: rgba(198, 40, 40, 0.1); color: var(--red-danger); }
-      .igd-mini-stat .val { font-size: 1.9rem; font-weight: 900; line-height: 1; }
-      .igd-mini-stat .lbl { font-size: 0.72rem; font-weight: 700; margin-top: 2px; }
-
-      /* Grid 2 Kolom Melar Menghabiskan Layar */
-      .igd-list-container {
-        flex: 1;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        align-content: stretch;
+        border-top: 5px solid var(--red-danger);
         min-height: 0;
       }
 
-      .igd-item-card {
-        background: #faf7f2;
-        border: 1px solid #ebdcc5;
-        border-left: 5px solid var(--red-danger);
+      .igd-top-bar {
+        background: var(--dark-brown);
+        padding: 8px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid var(--red-danger);
+        flex-shrink: 0;
+      }
+      .igd-title-wrap {
+        display: flex;
+        flex-direction: column;
+      }
+      .igd-title-wrap .title {
+        font-weight: 900;
+        font-size: 1.05rem;
+        color: #fff;
+        letter-spacing: 0.5px;
+      }
+      .igd-title-wrap .sub {
+        font-size: 0.68rem;
+        color: #ddd;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+      .igd-counter-badges {
+        display: flex;
+        gap: 8px;
+      }
+      .counter-badge {
+        padding: 4px 10px;
         border-radius: 8px;
-        padding: 6px 12px;
+        font-weight: 900;
+        font-size: 0.78rem;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .counter-badge.avail {
+        background: rgba(46, 125, 50, 0.25);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.4);
+      }
+      .counter-badge.occu {
+        background: rgba(198, 40, 40, 0.25);
+        color: #f87171;
+        border: 1px solid rgba(248, 113, 113, 0.4);
+      }
+
+      /* Grid Presisi 3 Kolom x 3 Baris Menghabiskan Area */
+      .igd-grid-wrapper {
+        flex: 1;
+        padding: 10px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 10px;
+        min-height: 0;
+      }
+
+      .igd-bed-card {
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 10px 12px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.03);
+        transition: transform 0.2s;
+        border: 2px solid transparent;
+      }
+
+      .igd-bed-card.available {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+      }
+      .igd-bed-card.occupied {
+        background: #fef2f2;
+        border-color: #fecaca;
+      }
+
+      .bed-top-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
       }
-      .igd-item-card .name { font-weight: 900; font-size: 1.15rem; color: var(--dark-brown); }
-      .igd-item-card .code { font-size: 0.75rem; color: #777; margin-top: 1px; }
-      .igd-badge {
-        padding: 5px 12px;
+      .bed-label-title {
+        font-weight: 900;
+        font-size: 1.25rem;
+        line-height: 1;
+      }
+      .igd-bed-card.available .bed-label-title { color: #166534; }
+      .igd-bed-card.occupied .bed-label-title { color: #991b1b; }
+
+      .bed-status-pill {
+        padding: 3px 8px;
         border-radius: 6px;
         font-weight: 900;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
       }
-      .igd-badge.available { background: var(--green-success); color: white; }
-      .igd-badge.occupied { background: var(--red-danger); color: white; }
+      .igd-bed-card.available .bed-status-pill {
+        background: var(--green-success);
+        color: #fff;
+      }
+      .igd-bed-card.occupied .bed-status-pill {
+        background: var(--red-danger);
+        color: #fff;
+      }
+
+      .bed-bottom-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 4px;
+      }
+      .bed-code-sub {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #777;
+      }
+      .bed-class-sub {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #555;
+        background: rgba(0,0,0,0.05);
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
 
       .fade-in { animation: fadeIn 0.3s ease-in; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -349,8 +417,7 @@
           overflow-y: auto;
         }
         body { height: auto; overflow: auto; }
-        .main-container { border-right: none; border-bottom: 4px solid var(--gold); }
-        .igd-panel { min-height: 500px; }
+        .igd-grid-wrapper { min-height: 480px; }
       }
     </style>
   </head>
@@ -425,26 +492,25 @@
         </div>
       </div>
 
-      <!-- SISI KANAN (50%): PANEL KHUSUS IGD -->
+      <!-- SISI KANAN (50%): PANEL KHUSUS IGD DENGAN GRID 3X3 -->
       <div class="igd-panel">
-        <div class="igd-header">
-          <div class="title">INSTALASI GAWAT DARURAT</div>
-          <div class="sub">OBSERVASI &amp; TINDAKAN MEDIS</div>
+        <div class="igd-top-bar">
+          <div class="igd-title-wrap">
+            <div class="title">INSTALASI GAWAT DARURAT (IGD)</div>
+            <div class="sub">OBSERVASI &amp; TINDAKAN MEDIS</div>
+          </div>
+          <div class="igd-counter-badges">
+            <div class="counter-badge avail">
+              <span>TERSEDIA:</span> <span id="igd-total-available" style="font-size:1.05rem;">0</span>
+            </div>
+            <div class="counter-badge occu">
+              <span>TERISI:</span> <span id="igd-total-occupied" style="font-size:1.05rem;">0</span>
+            </div>
+          </div>
         </div>
 
-        <div class="igd-summary-grid">
-          <div class="igd-mini-stat avail">
-            <div class="val" id="igd-total-available">0</div>
-            <div class="lbl">TERSEDIA</div>
-          </div>
-          <div class="igd-mini-stat occu">
-            <div class="val" id="igd-total-occupied">0</div>
-            <div class="lbl">TERISI</div>
-          </div>
-        </div>
-
-        <div class="igd-list-container" id="igd-list">
-          <div class="text-center p-3 text-muted">Memuat bed IGD...</div>
+        <div class="igd-grid-wrapper" id="igd-list">
+          <div class="text-center p-3 text-muted" style="grid-column: 1 / -1;">Memuat bed IGD...</div>
         </div>
       </div>
     </div>
@@ -623,10 +689,8 @@
       }
 
       function updateIgdPanel(igdBeds) {
-        // Urutkan kd_kamar agar urutan Bed 1 s/d Bed 9 konsisten
         igdBeds.sort((a, b) => (a.kd_kamar || '').localeCompare(b.kd_kamar || ''));
 
-        // Peta kode kamar asli ke alias Bed 1 - Bed 9
         const igdBedAlias = {
           'K0000175': 'Bed 1',
           'K0000176': 'Bed 2',
@@ -654,19 +718,21 @@
         let html = '';
         igdBeds.forEach((bed, index) => {
           const avail = isAvailable(bed);
-          const badgeClass = avail ? 'available' : 'occupied';
+          const cardClass = avail ? 'available' : 'occupied';
           const badgeLabel = avail ? 'Tersedia' : 'Terisi';
           
-          // Gunakan mapping alias atau fallback urutan jika kode berbeda
           const displayName = igdBedAlias[bed.kd_kamar] || ('Bed ' + (index + 1));
-          const subInfo = bed.nm_bangsal + ' - ' + (bed.kelas || 'IGD');
+          const kelasLabel = bed.kelas || 'Kelas 3';
 
-          html += '<div class="igd-item-card">' +
-                    '<div>' +
-                      '<div class="name">' + displayName + '</div>' +
-                      '<div class="code">' + subInfo + '</div>' +
+          html += '<div class="igd-bed-card ' + cardClass + '">' +
+                    '<div class="bed-top-row">' +
+                      '<div class="bed-label-title">' + displayName + '</div>' +
+                      '<span class="bed-status-pill">' + badgeLabel + '</span>' +
                     '</div>' +
-                    '<span class="igd-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+                    '<div class="bed-bottom-row">' +
+                      '<span class="bed-code-sub">' + bed.kd_kamar + '</span>' +
+                      '<span class="bed-class-sub">' + kelasLabel + '</span>' +
+                    '</div>' +
                   '</div>';
         });
         listContainer.innerHTML = html;
